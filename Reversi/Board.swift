@@ -42,6 +42,15 @@ public struct Board {
         xRange = 0 ..< width
         yRange = 0 ..< height
         cells = [Disk?].init(repeating: nil, count: width * height)
+        _ = reset()
+    }
+    
+    /// `dump()` で書き出した配列を元に、盤の状態を構築します。
+    /// - Parameter dump: 盤の状態を書き出した配列
+    /// - Throws: 引数で渡されたものが不正な場合は `BoardError.restore` を `throw` します。
+    public init(restoringFrom dump: [[Disk?]]) throws {
+        self.init()
+        _ = try restore(from: dump)
     }
     
     /// 盤をゲーム開始時に状態に戻します。

@@ -21,6 +21,8 @@ class ViewController: UIViewController {
     /// どちらの色のプレイヤーのターンかを表します。ゲーム終了時は `nil` です。
     private var turn: Disk? = .dark
     
+    private var board = Board()
+    
     private var animationCanceller: Canceller?
     private var isAnimating: Bool { animationCanceller != nil }
     
@@ -59,30 +61,64 @@ extension ViewController {
     /// - Parameter completion: アニメーション完了時に実行されるクロージャです。
     ///     このクロージャは値を返さず、アニメーションが完了したかを示す真偽値を受け取ります。
     ///     もし `animated` が `false` の場合、このクロージャは次の run loop サイクルの初めに実行されます。
-    /// - Throws: もし `disk` を `x`, `y` で指定されるセルに置けない場合、 `DiskPlacementError` を `throw` します。
+    /// - Throws: もし `disk` を `x`, `y` で指定されるセルに置けない場合、 `BoardError.diskPlacement` を `throw` します。
     func placeDisk(_ disk: Disk, atX x: Int, y: Int, animated isAnimated: Bool, completion: ((Bool) -> Void)? = nil) throws {
-        let cleanUp: () -> Void
+        let cellChanges = try board.placeDisk(disk, atX: x, y: y)
+        
         if isAnimated {
-            cleanUp = { [weak self] in
+            let cleanUp: () -> Void = { [weak self] in
                 self?.animationCanceller = nil
             }
             animationCanceller = Canceller(cleanUp)
-        } else {
-            cleanUp = {}
-        }
-        do {
-            try boardView.placeDisk(disk, atX: x, y: y, animated: isAnimated, animationCanceller: animationCanceller) { [weak self] isFinished in
+            animateApplyingChanges(cellChanges) { [weak self] isFinished in
                 guard let self = self else { return }
+                guard let canceller = self.animationCanceller else { return }
+                if canceller.isCancelled { return }
                 cleanUp()
+
                 completion?(isFinished)
                 try? self.saveGame()
                 self.updateCountLabels()
             }
-        } catch let error {
-            cleanUp()
-            throw error
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                for change in cellChanges {
+                    self.boardView.setDisk(change.disk, atX: change.x, y: change.y, animated: false)
+                }
+                completion?(true)
+                try? self.saveGame()
+                self.updateCountLabels()
+            }
         }
-    }    
+    }
+
+    /// `changes` で指定された一連の変更を、アニメーションしながら順番に `boardView` に反映します。
+    /// `changes` から先頭の変更を取得して反映し、
+    /// 残りの変更についてこのメソッドを再帰呼び出しすることで処理が行われます。
+    /// すべての変更を反映できたら `completion` ハンドラーが呼び出されます。
+    private func animateApplyingChanges<C: Collection>(_ changes: C, completion: @escaping (Bool) -> Void)
+        where C.Element == Board.CellChange
+    {
+        guard let change = changes.first else {
+            completion(true)
+            return
+        }
+        
+        let animationCanceller = self.animationCanceller!
+        boardView.setDisk(change.disk, atX: change.x, y: change.y, animated: true) { [weak self] isFinished in
+            guard let self = self else { return }
+            if animationCanceller.isCancelled { return }
+            if isFinished {
+                self.animateApplyingChanges(changes.dropFirst(), completion: completion)
+            } else {
+                for left in changes {
+                    self.boardView.setDisk(left.disk, atX: left.x, y: left.y, animated: false)
+                }
+                completion(false)
+            }
+        }
+    }
 }
 
 // MARK: Game management
@@ -90,7 +126,9 @@ extension ViewController {
 extension ViewController {
     /// ゲームの状態を初期化し、新しいゲームを開始します。
     func newGame() {
-        boardView.reset()
+        board.reset().forEach { change in
+            boardView.setDisk(change.disk, atX: change.x, y: change.y, animated: false)
+        }
         turn = .dark
         
         for playerControl in playerControls {
@@ -122,8 +160,8 @@ extension ViewController {
 
         turn.flip()
         
-        if boardView.validMoves(for: turn).isEmpty {
-            if boardView.validMoves(for: turn.flipped).isEmpty {
+        if board.validMoves(for: turn).isEmpty {
+            if board.validMoves(for: turn.flipped).isEmpty {
                 self.turn = nil
                 updateMessageViews()
             } else {
@@ -150,7 +188,7 @@ extension ViewController {
     /// "Computer" が選択されている場合のプレイヤーの行動を決定します。
     func playTurnOfComputer() {
         guard let turn = self.turn else { preconditionFailure() }
-        let (x, y) = boardView.validMoves(for: turn).randomElement()!
+        let (x, y) = board.validMoves(for: turn).randomElement()!
 
         playerActivityIndicators[turn.index].startAnimating()
         
@@ -180,7 +218,7 @@ extension ViewController {
     /// 各プレイヤーの獲得したディスクの枚数を表示します。
     func updateCountLabels() {
         for side in Disk.sides {
-            countLabels[side.index].text = "\(boardView.countDisks(of: side))"
+            countLabels[side.index].text = "\(board.countDisks(of: side))"
         }
     }
     
@@ -192,7 +230,7 @@ extension ViewController {
             messageDiskView.disk = side
             messageLabel.text = "'s turn"
         case .none:
-            if let winner = boardView.sideWithMoreDisks() {
+            if let winner = board.sideWithMoreDisks() {
                 messageDiskSizeConstraint.constant = messageDiskSize
                 messageDiskView.disk = winner
                 messageLabel.text = " won"
@@ -282,9 +320,10 @@ extension ViewController {
         }
         output += "\n"
         
-        for y in boardView.yRange {
-            for x in boardView.xRange {
-                output += boardView.diskAt(x: x, y: y).symbol
+        let boardDump = board.dump()
+        for dumpLine in boardDump {
+            for disk in dumpLine {
+                output += disk.symbol
             }
             output += "\n"
         }
@@ -328,25 +367,31 @@ extension ViewController {
         }
 
         do { // board
-            guard lines.count == boardView.height else {
+            guard lines.count == board.height else {
                 throw FileIOError.read(path: path, cause: nil)
             }
             
-            var y = 0
+            var dump = [[Disk?]]()
             while let line = lines.popFirst() {
-                var x = 0
+                var dumpLine = [Disk?]()
                 for character in line {
                     let disk = Disk?(symbol: "\(character)").flatMap { $0 }
-                    boardView.setDisk(disk, atX: x, y: y, animated: false)
-                    x += 1
+                    dumpLine.append(disk)
                 }
-                guard x == boardView.width else {
+                guard dumpLine.count == board.width else {
                     throw FileIOError.read(path: path, cause: nil)
                 }
-                y += 1
+                dump.append(dumpLine)
             }
-            guard y == boardView.height else {
+            guard dump.count == board.height else {
                 throw FileIOError.read(path: path, cause: nil)
+            }
+            do {
+                try board.restore(from: dump).forEach { change in
+                    boardView.setDisk(change.disk, atX: change.x, y: change.y, animated: false)
+                }
+            } catch let error {
+                throw FileIOError.read(path: path, cause: error)
             }
         }
 
@@ -382,12 +427,6 @@ final class Canceller {
         isCancelled = true
         body?()
     }
-}
-
-struct DiskPlacementError: Error {
-    let disk: Disk
-    let x: Int
-    let y: Int
 }
 
 // MARK: File-private extensions
@@ -435,7 +474,4 @@ extension Optional where Wrapped == Disk {
             return "-"
         }
     }
-}
-
-extension BoardView: Board {
 }

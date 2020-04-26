@@ -1,42 +1,124 @@
 import Foundation
 
-protocol Board {
+enum BoardError: Error {
+    case diskPlacement(disk: Disk, x: Int, y: Int)
+    case restore(dump: [[Disk?]])
+}
+
+struct Board {
     /// 盤の幅（ `8` ）を表します。
-    var width: Int { get }
+    let width: Int = 8
     
     /// 盤の高さ（ `8` ）を返します。
-    var height: Int { get }
+    let height: Int = 8
     
     /// 盤のセルの `x` の範囲（ `0 ..< 8` ）を返します。
-    var xRange: Range<Int> { get }
+    let xRange: Range<Int>
     
     /// 盤のセルの `y` の範囲（ `0 ..< 8` ）を返します。
-    var yRange: Range<Int> { get }
+    let yRange: Range<Int>
+    
+    /// 状態が変更されたセルの場所と変更後のディスクの値を示します。
+    struct CellChange {
+        var x: Int
+        var y: Int
+        var disk: Disk?
+    }
+    
+    private var cells: [Disk?]
 
-    /// 盤をゲーム開始時に状態に戻します。このメソッドはアニメーションを伴いません。
-    func reset()
+    init() {
+        xRange = 0 ..< width
+        yRange = 0 ..< height
+        cells = [Disk?].init(repeating: nil, count: width * height)
+    }
+    
+    /// 盤をゲーム開始時に状態に戻します。
+    /// - Returns: 変更されたセルの情報を返します。
+    mutating func reset() -> [CellChange] {
+        var cellChanges = [CellChange]()
+        
+        for y in  yRange {
+            for x in xRange {
+                setDisk(nil, atX: x, y: y, recordingOnto: &cellChanges)
+            }
+        }
+        
+        setDisk(.light, atX: width / 2 - 1, y: height / 2 - 1, recordingOnto: &cellChanges)
+        setDisk(.dark, atX: width / 2, y: height / 2 - 1, recordingOnto: &cellChanges)
+        setDisk(.dark, atX: width / 2 - 1, y: height / 2, recordingOnto: &cellChanges)
+        setDisk(.light, atX: width / 2, y: height / 2, recordingOnto: &cellChanges)
+        
+        return cellChanges
+    }
+    
+    /// 盤の状態を `Disk?` の二次元配列に書き出します。
+    /// - Returns: 盤の状態を書き出した配列
+    func dump() -> [[Disk?]] {
+        var output = [[Disk?]]()
+        for y in yRange {
+            var line = [Disk?]()
+            for x in xRange {
+                line.append(diskAt(x: x, y: y))
+            }
+            output.append(line)
+        }
+        return output
+    }
+    
+    /// `dump()` で書き出した配列を元に、盤の状態を復元します。
+    /// - Parameter dumpedText: 盤の状態を書き出した文字列
+    /// - Returns: 変更されたセルの情報を返します。
+    /// - Throws: 引数で渡された文字列が不正な場合は `BoardError.restore` を `throw` します。
+    mutating func restore(from dump: [[Disk?]]) throws -> [CellChange] {
+        var lines = dump[...]
+
+        guard lines.count == height else {
+            throw BoardError.restore(dump: dump)
+        }
+        
+        var cellChanges = [CellChange]()
+        
+        guard lines.count == height else {
+            throw BoardError.restore(dump: dump)
+        }
+        var y = 0
+        while let line = lines.popFirst() {
+            guard line.count == width else {
+                throw BoardError.restore(dump: dump)
+            }
+            var x = 0
+            for disk in line {
+                setDisk(disk, atX: x, y: y, recordingOnto: &cellChanges)
+                x += 1
+            }
+            y += 1
+        }
+        
+        return cellChanges
+    }
     
     /// `x`, `y` で指定されたセルの状態を返します。
     /// セルにディスクが置かれていない場合、 `nil` が返されます。
     /// - Parameter x: セルの列です。
     /// - Parameter y: セルの行です。
     /// - Returns: セルにディスクが置かれている場合はそのディスクの値を、置かれていない場合は `nil` を返します。
-    func diskAt(x: Int, y: Int) -> Disk?
+    func diskAt(x: Int, y: Int) -> Disk? {
+        guard xRange.contains(x) && yRange.contains(y) else { return nil }
+        return cells[y * width + x]
+    }
 
     /// `x`, `y` で指定されたセルの状態を、与えられた `disk` に変更します。
-    /// `animated` が `true` の場合、アニメーションが実行されます。
-    /// アニメーションの完了通知は `completion` ハンドラーで受け取ることができます。
     /// - Parameter disk: セルに設定される新しい状態です。 `nil` はディスクが置かれていない状態を表します。
     /// - Parameter x: セルの列です。
     /// - Parameter y: セルの行です。
-    /// - Parameter animated: セルの状態変更を表すアニメーションを表示するかどうかを指定します。
-    /// - Parameter completion: アニメーションの完了通知を受け取るハンドラーです。
-    ///     `animated` に `false` が指定された場合は状態が変更された後で即座に同期的に呼び出されます。
-    ///     ハンドラーが受け取る `Bool` 値は、 `UIView.animate()`  等に準じます。
-    func setDisk(_ disk: Disk?, atX x: Int, y: Int, animated: Bool, completion: ((Bool) -> Void)?)
-}
-
-extension Board {
+    /// - Parameter cellChanges: セルの変更を記憶するための配列を指定します。
+    private mutating func setDisk(_ disk: Disk?, atX x: Int, y: Int, recordingOnto cellChanges: inout [CellChange]) {
+        guard xRange.contains(x) && yRange.contains(y) else { preconditionFailure() }
+        cells[y * width + x] = disk
+        cellChanges.append(CellChange(x: x, y: y, disk: disk))
+    }
+    
     /// `side` で指定された色のディスクが盤上に置かれている枚数を返します。
     /// - Parameter side: 数えるディスクの色です。
     /// - Returns: `side` で指定された色のディスクの、盤上の枚数です。
@@ -133,66 +215,26 @@ extension Board {
         
         return coordinates
     }
-}
-
-extension Board where Self: AnyObject {
+    
     /// `x`, `y` で指定されたセルに `disk` を置きます。
+    /// - Parameter disk: セルに置かれるディスクです。
     /// - Parameter x: セルの列です。
     /// - Parameter y: セルの行です。
-    /// - Parameter isAnimated: ディスクを置いたりひっくり返したりするアニメーションを表示するかどうかを指定します。
-    /// - Parameter animationCanceller: アニメーションの実行をキャンセルするためのもの
-    /// - Parameter completion: アニメーション完了時に実行されるクロージャです。
-    ///     このクロージャは値を返さず、アニメーションが完了したかを示す真偽値を受け取ります。
-    ///     もし `animated` が `false` の場合、このクロージャは次の run loop サイクルの初めに実行されます。
-    /// - Throws: もし `disk` を `x`, `y` で指定されるセルに置けない場合、 `DiskPlacementError` を `throw` します。
-    func placeDisk(_ disk: Disk, atX x: Int, y: Int, animated isAnimated: Bool, animationCanceller: Canceller?, completion: ((Bool) -> Void)? = nil) throws {
+    /// - Returns: 変更されたセルの情報を返します。
+    /// - Throws: もし `disk` を `x`, `y` で指定されるセルに置けない場合、 `BoardError.diskPlacement` を `throw` します。
+    mutating func placeDisk(_ disk: Disk, atX x: Int, y: Int) throws -> [CellChange] {
         let diskCoordinates = flippedDiskCoordinatesByPlacingDisk(disk, atX: x, y: y)
         if diskCoordinates.isEmpty {
-            throw DiskPlacementError(disk: disk, x: x, y: y)
+            throw BoardError.diskPlacement(disk: disk, x: x, y: y)
         }
-        
-        if isAnimated {
-            let canceller = animationCanceller ?? Canceller(nil)
-            animateSettingDisks(at: [(x, y)] + diskCoordinates, to: disk, animationCanceller: canceller) { isFinished in
-                if canceller.isCancelled { return }
 
-                completion?(isFinished)
-            }
-        } else {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.setDisk(disk, atX: x, y: y, animated: false, completion: nil)
-                for (x, y) in diskCoordinates {
-                    self.setDisk(disk, atX: x, y: y, animated: false, completion: nil)
-                }
-                completion?(true)
-            }
-        }
-    }
-    
-    /// `coordinates` で指定されたセルに、アニメーションしながら順番に `disk` を置く。
-    /// `coordinates` から先頭の座標を取得してそのセルに `disk` を置き、
-    /// 残りの座標についてこのメソッドを再帰呼び出しすることで処理が行われる。
-    /// すべてのセルに `disk` が置けたら `completion` ハンドラーが呼び出される。
-    private func animateSettingDisks<C: Collection>(at coordinates: C, to disk: Disk, animationCanceller: Canceller, completion: @escaping (Bool) -> Void)
-        where C.Element == (Int, Int)
-    {
-        guard let (x, y) = coordinates.first else {
-            completion(true)
-            return
+        var cellChanges = [CellChange]()
+        
+        setDisk(disk, atX: x, y: y, recordingOnto: &cellChanges)
+        for (x, y) in diskCoordinates {
+            self.setDisk(disk, atX: x, y: y, recordingOnto: &cellChanges)
         }
         
-        setDisk(disk, atX: x, y: y, animated: true) { [weak self] isFinished in
-            guard let self = self else { return }
-            if animationCanceller.isCancelled { return }
-            if isFinished {
-                self.animateSettingDisks(at: coordinates.dropFirst(), to: disk, animationCanceller: animationCanceller, completion: completion)
-            } else {
-                for (x, y) in coordinates {
-                    self.setDisk(disk, atX: x, y: y, animated: false, completion: nil)
-                }
-                completion(false)
-            }
-        }
+        return cellChanges
     }
 }

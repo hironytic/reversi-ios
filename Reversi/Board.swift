@@ -1,33 +1,44 @@
 import Foundation
 
-enum BoardError: Error {
+public enum BoardError: Error {
     case diskPlacement(disk: Disk, x: Int, y: Int)
     case restore(dump: [[Disk?]])
 }
 
-struct Board {
+public struct Board {
     /// 盤の幅（ `8` ）を表します。
-    let width: Int = 8
+    public let width: Int = 8
     
     /// 盤の高さ（ `8` ）を返します。
-    let height: Int = 8
+    public let height: Int = 8
     
     /// 盤のセルの `x` の範囲（ `0 ..< 8` ）を返します。
-    let xRange: Range<Int>
+    public let xRange: Range<Int>
     
     /// 盤のセルの `y` の範囲（ `0 ..< 8` ）を返します。
-    let yRange: Range<Int>
+    public let yRange: Range<Int>
     
     /// 状態が変更されたセルの場所と変更後のディスクの値を示します。
-    struct CellChange {
-        var x: Int
-        var y: Int
-        var disk: Disk?
+    public struct CellChange {
+        /// 変更されたセルの列です。
+        public var x: Int
+        
+        /// 変更されたセルの行です。
+        public var y: Int
+        
+        /// 変更された結果のセルの状態です。セルにディスクが置かれていない場合、 `nil` になります。
+        public var disk: Disk?
+        
+        public init(x: Int, y: Int, disk: Disk?) {
+            self.x = x
+            self.y = y
+            self.disk = disk
+        }
     }
     
     private var cells: [Disk?]
 
-    init() {
+    public init() {
         xRange = 0 ..< width
         yRange = 0 ..< height
         cells = [Disk?].init(repeating: nil, count: width * height)
@@ -35,7 +46,7 @@ struct Board {
     
     /// 盤をゲーム開始時に状態に戻します。
     /// - Returns: 変更されたセルの情報を返します。
-    mutating func reset() -> [CellChange] {
+    public mutating func reset() -> [CellChange] {
         var cellChanges = [CellChange]()
         
         for y in  yRange {
@@ -52,9 +63,9 @@ struct Board {
         return cellChanges
     }
     
-    /// 盤の状態を `Disk?` の二次元配列に書き出します。
+    /// 盤の状態を `Disk?` の配列の配列に書き出します。
     /// - Returns: 盤の状態を書き出した配列
-    func dump() -> [[Disk?]] {
+    public func dump() -> [[Disk?]] {
         var output = [[Disk?]]()
         for y in yRange {
             var line = [Disk?]()
@@ -67,10 +78,10 @@ struct Board {
     }
     
     /// `dump()` で書き出した配列を元に、盤の状態を復元します。
-    /// - Parameter dumpedText: 盤の状態を書き出した文字列
+    /// - Parameter dump: 盤の状態を書き出した配列
     /// - Returns: 変更されたセルの情報を返します。
-    /// - Throws: 引数で渡された文字列が不正な場合は `BoardError.restore` を `throw` します。
-    mutating func restore(from dump: [[Disk?]]) throws -> [CellChange] {
+    /// - Throws: 引数で渡されたものが不正な場合は `BoardError.restore` を `throw` します。
+    public mutating func restore(from dump: [[Disk?]]) throws -> [CellChange] {
         var lines = dump[...]
 
         guard lines.count == height else {
@@ -103,7 +114,7 @@ struct Board {
     /// - Parameter x: セルの列です。
     /// - Parameter y: セルの行です。
     /// - Returns: セルにディスクが置かれている場合はそのディスクの値を、置かれていない場合は `nil` を返します。
-    func diskAt(x: Int, y: Int) -> Disk? {
+    public func diskAt(x: Int, y: Int) -> Disk? {
         guard xRange.contains(x) && yRange.contains(y) else { return nil }
         return cells[y * width + x]
     }
@@ -122,7 +133,7 @@ struct Board {
     /// `side` で指定された色のディスクが盤上に置かれている枚数を返します。
     /// - Parameter side: 数えるディスクの色です。
     /// - Returns: `side` で指定された色のディスクの、盤上の枚数です。
-    func countDisks(of side: Disk) -> Int {
+    public func countDisks(of side: Disk) -> Int {
         var count = 0
         
         for y in yRange {
@@ -139,7 +150,7 @@ struct Board {
     /// 盤上に置かれたディスクの枚数が多い方の色を返します。
     /// 引き分けの場合は `nil` が返されます。
     /// - Returns: 盤上に置かれたディスクの枚数が多い方の色です。引き分けの場合は `nil` を返します。
-    func sideWithMoreDisks() -> Disk? {
+    public func sideWithMoreDisks() -> Disk? {
         let darkCount = countDisks(of: .dark)
         let lightCount = countDisks(of: .light)
         if darkCount == lightCount {
@@ -196,13 +207,13 @@ struct Board {
     /// - Parameter x: セルの列です。
     /// - Parameter y: セルの行です。
     /// - Returns: 指定されたセルに `disk` を置ける場合は `true` を、置けない場合は `false` を返します。
-    func canPlaceDisk(_ disk: Disk, atX x: Int, y: Int) -> Bool {
+    public func canPlaceDisk(_ disk: Disk, atX x: Int, y: Int) -> Bool {
         !flippedDiskCoordinatesByPlacingDisk(disk, atX: x, y: y).isEmpty
     }
     
     /// `side` で指定された色のディスクを置ける盤上のセルの座標をすべて返します。
     /// - Returns: `side` で指定された色のディスクを置ける盤上のすべてのセルの座標の配列です。
-    func validMoves(for side: Disk) -> [(x: Int, y: Int)] {
+    public func validMoves(for side: Disk) -> [(x: Int, y: Int)] {
         var coordinates: [(Int, Int)] = []
         
         for y in yRange {
@@ -222,7 +233,7 @@ struct Board {
     /// - Parameter y: セルの行です。
     /// - Returns: 変更されたセルの情報を返します。
     /// - Throws: もし `disk` を `x`, `y` で指定されるセルに置けない場合、 `BoardError.diskPlacement` を `throw` します。
-    mutating func placeDisk(_ disk: Disk, atX x: Int, y: Int) throws -> [CellChange] {
+    public mutating func placeDisk(_ disk: Disk, atX x: Int, y: Int) throws -> [CellChange] {
         let diskCoordinates = flippedDiskCoordinatesByPlacingDisk(disk, atX: x, y: y)
         if diskCoordinates.isEmpty {
             throw BoardError.diskPlacement(disk: disk, x: x, y: y)

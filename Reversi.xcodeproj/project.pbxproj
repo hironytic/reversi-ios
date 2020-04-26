@@ -81,6 +81,7 @@
 		D636B3A423D432D3007F370F /* DataTypes */ = {
 			isa = PBXGroup;
 			children = (
+				503FF3F92453123900D944A8 /* Board.swift */,
 				D642BDD723AA0B5700396732 /* Disk.swift */,
 			);
 			name = DataTypes;
@@ -110,7 +111,6 @@
 				D642BDB323A9FE4500396732 /* AppDelegate.swift */,
 				D642BDB523A9FE4500396732 /* SceneDelegate.swift */,
 				D642BDB723A9FE4500396732 /* ViewController.swift */,
-				503FF3F92453123900D944A8 /* Board.swift */,
 				D642BDB923A9FE4500396732 /* Main.storyboard */,
 				D642BDBC23A9FE4700396732 /* Assets.xcassets */,
 				D642BDBE23A9FE4700396732 /* LaunchScreen.storyboard */,

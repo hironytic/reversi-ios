@@ -19,7 +19,7 @@ public struct Board {
     public let yRange: Range<Int>
     
     /// 状態が変更されたセルの場所と変更後のディスクの値を示します。
-    public struct CellChange {
+    public struct CellChange: Hashable {
         /// 変更されたセルの列です。
         public var x: Int
         

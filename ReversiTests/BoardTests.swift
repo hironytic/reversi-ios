@@ -168,6 +168,137 @@ class BoardTests: XCTestCase {
         )
     }
     
+    func testRestore() throws {
+        let dump: [[Disk?]] = [
+            [.light, nil, nil, nil, nil, nil, nil, nil],
+            [nil, .light, nil, .light, nil, nil, nil, nil],
+            [nil, nil, .light, .light, nil, .light, nil, nil],
+            [nil, nil, .dark, .light, .dark, .light, .dark, nil],
+            [nil, nil, nil, .dark, .light, .dark, nil, nil],
+            [nil, nil, nil, .light, .dark, .dark, .dark, nil],
+            [nil, nil, nil, .light, nil, .dark, nil, nil],
+            [nil, nil, .light, nil, nil, nil, nil, nil],
+        ]
+        
+        var board = Board()
+        let cellChanges = try board.restore(from: dump)
+
+        XCTAssertEqual(cellChanges, [
+            Board.CellChange(x: 0, y: 0, disk: .light),
+            Board.CellChange(x: 1, y: 0, disk: nil),
+            Board.CellChange(x: 2, y: 0, disk: nil),
+            Board.CellChange(x: 3, y: 0, disk: nil),
+            Board.CellChange(x: 4, y: 0, disk: nil),
+            Board.CellChange(x: 5, y: 0, disk: nil),
+            Board.CellChange(x: 6, y: 0, disk: nil),
+            Board.CellChange(x: 7, y: 0, disk: nil),
+            Board.CellChange(x: 0, y: 1, disk: nil),
+            Board.CellChange(x: 1, y: 1, disk: .light),
+            Board.CellChange(x: 2, y: 1, disk: nil),
+            Board.CellChange(x: 3, y: 1, disk: .light),
+            Board.CellChange(x: 4, y: 1, disk: nil),
+            Board.CellChange(x: 5, y: 1, disk: nil),
+            Board.CellChange(x: 6, y: 1, disk: nil),
+            Board.CellChange(x: 7, y: 1, disk: nil),
+            Board.CellChange(x: 0, y: 2, disk: nil),
+            Board.CellChange(x: 1, y: 2, disk: nil),
+            Board.CellChange(x: 2, y: 2, disk: .light),
+            Board.CellChange(x: 3, y: 2, disk: .light),
+            Board.CellChange(x: 4, y: 2, disk: nil),
+            Board.CellChange(x: 5, y: 2, disk: .light),
+            Board.CellChange(x: 6, y: 2, disk: nil),
+            Board.CellChange(x: 7, y: 2, disk: nil),
+            Board.CellChange(x: 0, y: 3, disk: nil),
+            Board.CellChange(x: 1, y: 3, disk: nil),
+            Board.CellChange(x: 2, y: 3, disk: .dark),
+            Board.CellChange(x: 3, y: 3, disk: .light),
+            Board.CellChange(x: 4, y: 3, disk: .dark),
+            Board.CellChange(x: 5, y: 3, disk: .light),
+            Board.CellChange(x: 6, y: 3, disk: .dark),
+            Board.CellChange(x: 7, y: 3, disk: nil),
+            Board.CellChange(x: 0, y: 4, disk: nil),
+            Board.CellChange(x: 1, y: 4, disk: nil),
+            Board.CellChange(x: 2, y: 4, disk: nil),
+            Board.CellChange(x: 3, y: 4, disk: .dark),
+            Board.CellChange(x: 4, y: 4, disk: .light),
+            Board.CellChange(x: 5, y: 4, disk: .dark),
+            Board.CellChange(x: 6, y: 4, disk: nil),
+            Board.CellChange(x: 7, y: 4, disk: nil),
+            Board.CellChange(x: 0, y: 5, disk: nil),
+            Board.CellChange(x: 1, y: 5, disk: nil),
+            Board.CellChange(x: 2, y: 5, disk: nil),
+            Board.CellChange(x: 3, y: 5, disk: .light),
+            Board.CellChange(x: 4, y: 5, disk: .dark),
+            Board.CellChange(x: 5, y: 5, disk: .dark),
+            Board.CellChange(x: 6, y: 5, disk: .dark),
+            Board.CellChange(x: 7, y: 5, disk: nil),
+            Board.CellChange(x: 0, y: 6, disk: nil),
+            Board.CellChange(x: 1, y: 6, disk: nil),
+            Board.CellChange(x: 2, y: 6, disk: nil),
+            Board.CellChange(x: 3, y: 6, disk: .light),
+            Board.CellChange(x: 4, y: 6, disk: nil),
+            Board.CellChange(x: 5, y: 6, disk: .dark),
+            Board.CellChange(x: 6, y: 6, disk: nil),
+            Board.CellChange(x: 7, y: 6, disk: nil),
+            Board.CellChange(x: 0, y: 7, disk: nil),
+            Board.CellChange(x: 1, y: 7, disk: nil),
+            Board.CellChange(x: 2, y: 7, disk: .light),
+            Board.CellChange(x: 3, y: 7, disk: nil),
+            Board.CellChange(x: 4, y: 7, disk: nil),
+            Board.CellChange(x: 5, y: 7, disk: nil),
+            Board.CellChange(x: 6, y: 7, disk: nil),
+            Board.CellChange(x: 7, y: 7, disk: nil),
+        ])
+        
+        XCTAssertEqual(board.dumpAsText(), """
+            o-------
+            -o-o----
+            --oo-o--
+            --xoxox-
+            ---xox--
+            ---oxxx-
+            ---o-x--
+            --o-----
+            """
+        )
+    }
+    
+    func testRestoreFail() {
+        var board = Board()
+
+        let dump1: [[Disk?]] = [
+            [.light, nil, nil, nil, nil, nil, nil, nil],
+            [nil, .light, nil, .light, nil, nil, nil, nil],
+            [nil, nil, .light, .light, nil, .light, nil, nil],
+            [nil, nil, .dark, .light, .dark, .light, .dark, nil],
+        ]
+        XCTAssertThrowsError(try board.restore(from: dump1)) { error in
+            if case let BoardError.restore(dump: data) = error {
+                XCTAssertEqual(data, dump1)
+            } else {
+                XCTFail()
+            }
+        }
+        
+        let dump2: [[Disk?]] = [
+            [.light, nil, nil, nil, nil, nil, nil, nil],
+            [nil, .light, nil, .light, nil, nil, nil, nil],
+            [nil, nil, .light, .light, nil, .light, nil, nil, .light], // too many elements
+            [nil, nil, .dark, .light, .dark, .light, .dark, nil],
+            [nil, nil, nil, .dark, .light, .dark, nil, nil],
+            [nil, nil, nil, .light, .dark, .dark, .dark, nil],
+            [nil, nil, nil, .light, nil, .dark, nil, nil],
+            [nil, nil, .light, nil, nil, nil, nil, nil],
+        ]
+        XCTAssertThrowsError(try board.restore(from: dump2)) { error in
+            if case let BoardError.restore(dump: data) = error {
+                XCTAssertEqual(data, dump2)
+            } else {
+                XCTFail()
+            }
+        }
+    }
+    
     func testPlaceDisk() throws {
         var board = try Board(restoringFromText: """
             o-------
@@ -217,6 +348,30 @@ class BoardTests: XCTestCase {
             --o-----
             """
         )
+    }
+    
+    func testPlaceDiskFail() throws {
+        var board = try Board(restoringFromText: """
+            o-------
+            -o-o----
+            --oo-o--
+            --xoxox-
+            ---xox--
+            ---oxxx-
+            ---o-x--
+            --o-----
+            """
+        )
+
+        XCTAssertThrowsError(try board.placeDisk(.dark, atX: 2, y: 6)) { error in
+            if case let BoardError.diskPlacement(disk: errorDisk, x: errorX, y: errorY) = error {
+                XCTAssertEqual(errorDisk, .dark)
+                XCTAssertEqual(errorX, 2)
+                XCTAssertEqual(errorY, 6)
+            } else {
+                XCTFail()
+            }
+        }
     }
     
     func testCountDisks() throws {

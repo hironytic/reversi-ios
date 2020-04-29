@@ -15,13 +15,10 @@ public enum Action {
     case reset
     
     /// リセットの確認ができたときにディスパッチするアクションです。
-    case executeReset
-    
-    /// 「パス」の表示を行ったときにディスパッチするアクションです。
-    case passNotified(requestId: UniqueIdentifier)
+    case resetConfirmed(requestId: UniqueIdentifier, execute: Bool)
     
     /// 「パス」の表示が消されたときにディスパッチするアクションです。
-    case passDismissed
+    case passDismissed(requestId: UniqueIdentifier)
     
     /// リバーシ盤の更新が完了したときにディスパッチするアクションです。
     case boardUpdated(requestId: UniqueIdentifier)

@@ -19,8 +19,12 @@ public struct State {
     public var boardUpdateRequest: Request<BoardUpdate>?
 
     /// 「パス」を通知する依頼が出ていれば値が設定されています。
-    /// 依頼に答えたら `Action.passNotified` をディスパッチしてください。
+    /// 依頼に答えて通知が閉じられたら `Action.passDismissed` をディスパッチしてください。
     public var passNotificationRequest: Request<Void>?
+    
+    /// リセットの確認を表示する依頼が出ていれば値が設定されています。
+    /// 依頼に答えて確認結果が得られたら `Action.resetConfirmed` をディスパッチしてください。
+    public var resetConfirmationRequst: Request<Void>?    
     
     public init(board: Board, turn: Disk?, playerModes: [PlayerMode], phase: AnyPhase) {
         precondition(playerModes.count == Disk.sides.count)

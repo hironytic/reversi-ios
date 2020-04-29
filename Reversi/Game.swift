@@ -114,9 +114,20 @@ private enum MainReducer: Reducer {
         let currentPhase = state.phase
 
         switch action {
-        case .executeReset:
-            // どのフェーズにいてもリセットの確認が行われたらリセット
-            state.phase = AnyPhase(ResetPhase())
+        case .reset:
+            // リセットボタンが押されたらリセット確認依頼を出す
+            state.resetConfirmationRequst = Request()
+            
+        case .resetConfirmed(let requestId, let execute):
+            if let request = state.resetConfirmationRequst, request.requestId == requestId {
+                state.resetConfirmationRequst = nil
+                
+                if execute {
+                    // どのフェーズにいてもリセットの確認の結果、
+                    // 実行することになったらリセット
+                    state.phase = AnyPhase(ResetPhase())
+                }
+            }            
             
         default:
             break

@@ -28,15 +28,20 @@ public struct PlacingDiskPhase: Phase {
         return state
     }
     
+    public static func onExit(state: State, nextPhase: AnyPhase) -> State {
+        var state = state
+
+        state.boardUpdateRequest = nil
+        
+        return state
+    }
+    
     public static func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {
         case .boardUpdated(let requestId):
             if let request = state.boardUpdateRequest, request.requestId == requestId {
-                // この依頼が反映された
-                state.boardUpdateRequest = nil
-                
                 // 残りの変更の反映を依頼するフェーズへ
                 let phase = state.phase.base as! PlacingDiskPhase
                 state.phase = AnyPhase(PlacingDiskPhase(cellChanges: phase.cellChanges[1...]))

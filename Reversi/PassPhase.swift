@@ -1,7 +1,7 @@
 import Foundation
 
-public extension PhaseKind {
-    static let pass = PhaseKind(rawValue: "pass")
+extension PhaseKind {
+    public static let pass = PhaseKind(rawValue: "pass")
 }
 
 public struct PassPhase: Phase {

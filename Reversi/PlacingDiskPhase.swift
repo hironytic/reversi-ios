@@ -1,7 +1,7 @@
 import Foundation
 
-public extension PhaseKind {
-    static let placingDisk = PhaseKind(rawValue: "placingDisk")
+extension PhaseKind {
+    public static let placingDisk = PhaseKind(rawValue: "placingDisk")
 }
 
 public struct PlacingDiskPhase: Phase {

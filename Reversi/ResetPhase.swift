@@ -1,7 +1,7 @@
 import Foundation
 
-public extension PhaseKind {
-    static let reset = PhaseKind(rawValue: "reset")
+extension PhaseKind {
+    public static let reset = PhaseKind(rawValue: "reset")
 }
 
 public struct ResetPhase: Phase {

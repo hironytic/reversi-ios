@@ -1,7 +1,7 @@
 import Foundation
 
-public extension PhaseKind {
-    static let waitForPlayer = PhaseKind(rawValue: "waitForPlayer")
+extension PhaseKind {
+    public static let waitForPlayer = PhaseKind(rawValue: "waitForPlayer")
 }
 
 public struct WaitForPlayerPhase: Phase {

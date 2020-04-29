@@ -30,6 +30,9 @@ public enum GameError: Error {
 
 /// ゲームの状態を保持し、アクションをディスパッチすることでゲームを進めます。
 public class Game {
+    /// 現在進行中のゲームのインスタンス
+    public static var current: Game?
+    
     private let stateHolder: CurrentValueSubject<State, Never>
 
     /// 現在の状態の発行元
@@ -55,46 +58,75 @@ public class Game {
             .eraseToAnyPublisher()
     }
 
-    /// アクションをディスパッチします。
-    /// - Parameter action: ディスパッチ対象のアクション
-    func dispatch(action: Action) {
+    /// ディスパッチメイン処理
+    private func dispatchCore(action: Action) {
         let currentState = stateHolder.value
         var reducedState = MainReducer.reduce(state: currentState, action: action)
         
         // フェーズの遷移を処理
         let prevPhase = currentState.phase
-        let nextPhase = reducedState.phase  
+        var nextPhase = reducedState.phase
         if prevPhase != nextPhase {
             reducedState = prevPhase.onExit(state: reducedState, nextPhase: nextPhase)
-            assert(reducedState.phase == nextPhase, "Don't change phase by `onExit`")
+            nextPhase = reducedState.phase
             
-            reducedState = nextPhase.onEnter(state: reducedState, previousPhase: prevPhase)
-            assert(reducedState.phase == nextPhase, "Don't change phase by `onEnter`")
+            var retryNeeded = false
+            repeat {
+                reducedState = nextPhase.onEnter(state: reducedState, previousPhase: prevPhase)
+                if reducedState.phase != nextPhase {
+                    // 遷移したと思ったとたん別のところに遷移するなら
+                    // もう一度抜けて入り直し
+                    reducedState = nextPhase.onExit(state: reducedState, nextPhase: reducedState.phase)
+                    nextPhase = reducedState.phase
+                    retryNeeded = true
+                } else {
+                    retryNeeded = false
+                }
+            } while retryNeeded
         }
         
         stateHolder.value = reducedState
     }
 
+    /// アクションをディスパッチします。
+    /// - Parameter action: ディスパッチ対象のアクション
+    public func dispatch(action: Action) {
+        DispatchQueue.main.async { [weak self] in
+            self?.dispatchCore(action: action)
+        }
+    }
+    
     /// 指定された関数でアクションを生成してディスパッチします。
     /// - Parameter actionCreator: アクションを生成する関数
-    func dispatch(actionCreator: (State) -> Action?) {
-        if let action = actionCreator(stateHolder.value) {
-            dispatch(action: action)
+    public func dispatch(actionCreator: @escaping (State) -> Action?) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if let action = actionCreator(self.stateHolder.value) {
+                self.dispatchCore(action: action)
+            }
         }
     }
 }
 
 private enum MainReducer: Reducer {
     static func reduce(state: State, action: Action) -> State {
+        var state = state
         let currentPhase = state.phase
-        
-        var reducedState = state // TODO: ここでも何かするよね
-        
-        // フェーズが変わらなければ、フェーズにreduceさせる
-        if currentPhase == reducedState.phase {
-            reducedState = currentPhase.reduce(state: reducedState, action: action)
+
+        switch action {
+        case .executeReset:
+            // どのフェーズにいてもリセットの確認が行われたらリセット
+            state.phase = AnyPhase(ResetPhase())
+            
+        default:
+            break
         }
         
-        return reducedState
+        // フェーズが変わらなければ、フェーズにreduceさせる
+        if currentPhase == state.phase {
+            state = currentPhase.reduce(state: state, action: action)
+        }
+        
+        return state
     }
 }

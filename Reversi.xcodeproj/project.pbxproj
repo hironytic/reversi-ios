@@ -15,6 +15,16 @@
 		506C88AD2458783700A8946D /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88AC2458783700A8946D /* Action.swift */; };
 		506C88AF245879E000A8946D /* InitialPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88AE245879E000A8946D /* InitialPhase.swift */; };
 		506C88B22459310F00A8946D /* Phase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B12459310F00A8946D /* Phase.swift */; };
+		506C88B424593DC000A8946D /* WaitForPlayerPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B324593DC000A8946D /* WaitForPlayerPhase.swift */; };
+		506C88B624594B0F00A8946D /* ThinkingPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B524594B0F00A8946D /* ThinkingPhase.swift */; };
+		506C88B824594BF800A8946D /* PlaceDiskPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B724594BF800A8946D /* PlaceDiskPhase.swift */; };
+		506C88BA24594C4100A8946D /* PlacingDiskPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B924594C4100A8946D /* PlacingDiskPhase.swift */; };
+		506C88BC24594C7D00A8946D /* NextTurnPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88BB24594C7D00A8946D /* NextTurnPhase.swift */; };
+		506C88BE24594D3F00A8946D /* PassPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88BD24594D3F00A8946D /* PassPhase.swift */; };
+		506C88C024594D7200A8946D /* GameOverPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88BF24594D7200A8946D /* GameOverPhase.swift */; };
+		506C88C2245958C900A8946D /* UniqueIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88C1245958C900A8946D /* UniqueIdentifier.swift */; };
+		506C88C42459612A00A8946D /* ResetPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88C32459612A00A8946D /* ResetPhase.swift */; };
+		506C88C624596C5C00A8946D /* GameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88C524596C5C00A8946D /* GameTests.swift */; };
 		D636B39F23D35043007F370F /* DiskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D636B39E23D35043007F370F /* DiskView.swift */; };
 		D642BDB423A9FE4500396732 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D642BDB323A9FE4500396732 /* AppDelegate.swift */; };
 		D642BDB623A9FE4500396732 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D642BDB523A9FE4500396732 /* SceneDelegate.swift */; };
@@ -47,6 +57,16 @@
 		506C88AC2458783700A8946D /* Action.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
 		506C88AE245879E000A8946D /* InitialPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialPhase.swift; sourceTree = "<group>"; };
 		506C88B12459310F00A8946D /* Phase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase.swift; sourceTree = "<group>"; };
+		506C88B324593DC000A8946D /* WaitForPlayerPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitForPlayerPhase.swift; sourceTree = "<group>"; };
+		506C88B524594B0F00A8946D /* ThinkingPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingPhase.swift; sourceTree = "<group>"; };
+		506C88B724594BF800A8946D /* PlaceDiskPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDiskPhase.swift; sourceTree = "<group>"; };
+		506C88B924594C4100A8946D /* PlacingDiskPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacingDiskPhase.swift; sourceTree = "<group>"; };
+		506C88BB24594C7D00A8946D /* NextTurnPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextTurnPhase.swift; sourceTree = "<group>"; };
+		506C88BD24594D3F00A8946D /* PassPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassPhase.swift; sourceTree = "<group>"; };
+		506C88BF24594D7200A8946D /* GameOverPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverPhase.swift; sourceTree = "<group>"; };
+		506C88C1245958C900A8946D /* UniqueIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueIdentifier.swift; sourceTree = "<group>"; };
+		506C88C32459612A00A8946D /* ResetPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPhase.swift; sourceTree = "<group>"; };
+		506C88C524596C5C00A8946D /* GameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTests.swift; sourceTree = "<group>"; };
 		D636B39E23D35043007F370F /* DiskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskView.swift; sourceTree = "<group>"; };
 		D642BDB023A9FE4500396732 /* Reversi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reversi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D642BDB323A9FE4500396732 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -98,6 +118,14 @@
 			isa = PBXGroup;
 			children = (
 				506C88AE245879E000A8946D /* InitialPhase.swift */,
+				506C88B324593DC000A8946D /* WaitForPlayerPhase.swift */,
+				506C88B524594B0F00A8946D /* ThinkingPhase.swift */,
+				506C88B724594BF800A8946D /* PlaceDiskPhase.swift */,
+				506C88B924594C4100A8946D /* PlacingDiskPhase.swift */,
+				506C88BB24594C7D00A8946D /* NextTurnPhase.swift */,
+				506C88BD24594D3F00A8946D /* PassPhase.swift */,
+				506C88BF24594D7200A8946D /* GameOverPhase.swift */,
+				506C88C32459612A00A8946D /* ResetPhase.swift */,
 			);
 			name = Phases;
 			sourceTree = "<group>";
@@ -118,6 +146,7 @@
 				503FF3F92453123900D944A8 /* Board.swift */,
 				D642BDD723AA0B5700396732 /* Disk.swift */,
 				50182BFD2458518B00BDC2B6 /* PlayerMode.swift */,
+				506C88C1245958C900A8946D /* UniqueIdentifier.swift */,
 			);
 			name = DataTypes;
 			sourceTree = "<group>";
@@ -162,6 +191,7 @@
 			children = (
 				D642BDCA23A9FE4700396732 /* ReversiTests.swift */,
 				50182BF92455C68600BDC2B6 /* BoardTests.swift */,
+				506C88C524596C5C00A8946D /* GameTests.swift */,
 				D642BDCC23A9FE4700396732 /* Info.plist */,
 			);
 			path = ReversiTests;
@@ -271,17 +301,26 @@
 				D636B39F23D35043007F370F /* DiskView.swift in Sources */,
 				506C88AD2458783700A8946D /* Action.swift in Sources */,
 				50182BFC24584C4500BDC2B6 /* Game.swift in Sources */,
+				506C88BA24594C4100A8946D /* PlacingDiskPhase.swift in Sources */,
 				D642BDD623AA0B3900396732 /* CellView.swift in Sources */,
 				506C88A9245872E300A8946D /* State.swift in Sources */,
+				506C88BE24594D3F00A8946D /* PassPhase.swift in Sources */,
 				506C88AF245879E000A8946D /* InitialPhase.swift in Sources */,
 				D642BDD823AA0B5700396732 /* Disk.swift in Sources */,
 				D642BDB823A9FE4500396732 /* ViewController.swift in Sources */,
 				50182BFE2458518B00BDC2B6 /* PlayerMode.swift in Sources */,
+				506C88B424593DC000A8946D /* WaitForPlayerPhase.swift in Sources */,
 				506C88B22459310F00A8946D /* Phase.swift in Sources */,
+				506C88C42459612A00A8946D /* ResetPhase.swift in Sources */,
+				506C88BC24594C7D00A8946D /* NextTurnPhase.swift in Sources */,
+				506C88C024594D7200A8946D /* GameOverPhase.swift in Sources */,
+				506C88B624594B0F00A8946D /* ThinkingPhase.swift in Sources */,
 				D642BDDC23AA137C00396732 /* BoardView.swift in Sources */,
+				506C88C2245958C900A8946D /* UniqueIdentifier.swift in Sources */,
 				D642BDB423A9FE4500396732 /* AppDelegate.swift in Sources */,
 				503FF3FA2453123900D944A8 /* Board.swift in Sources */,
 				D642BDB623A9FE4500396732 /* SceneDelegate.swift in Sources */,
+				506C88B824594BF800A8946D /* PlaceDiskPhase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				50182BFA2455C68600BDC2B6 /* BoardTests.swift in Sources */,
+				506C88C624596C5C00A8946D /* GameTests.swift in Sources */,
 				D642BDCB23A9FE4700396732 /* ReversiTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

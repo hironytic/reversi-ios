@@ -9,7 +9,7 @@ public enum Action {
     case boardCellSelected(x: Int, y: Int)
     
     /// 黒・白のプレイヤーモードが変更されたときにディスパッチするアクションです。
-    case playerModeChanged(player: Disk?, mode: PlayerMode)
+    case playerModeChanged(player: Disk, mode: PlayerMode)
     
     /// リセットボタンが押されたときにディスパッチするアクションです。
     case reset
@@ -17,9 +17,12 @@ public enum Action {
     /// リセットの確認ができたときにディスパッチするアクションです。
     case executeReset
     
-    /// 「パス」の表示を消したときにディスパッチするアクションです。
-    case dismissPass
+    /// 「パス」の表示を行ったときにディスパッチするアクションです。
+    case passNotified(requestId: UniqueIdentifier)
     
-    /// ディスクをセットするアニメーションが終わったらディスパッチするアクションです。
-    case diskAnimationCompleted
+    /// 「パス」の表示が消されたときにディスパッチするアクションです。
+    case passDismissed
+    
+    /// リバーシ盤の更新が完了したときにディスパッチするアクションです。
+    case boardUpdated(requestId: UniqueIdentifier)
 }

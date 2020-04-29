@@ -8,7 +8,15 @@ public struct InitialPhase: Phase {
     public var kind: PhaseKind { .initial }
     
     public static func reduce(state: State, action: Action) -> State {
-        // TODO:
-        return state
+        var reducedState = state
+        
+        switch action {
+        case .start:
+            reducedState.phase = AnyPhase(WaitForPlayerPhase())
+        default:
+            break
+        }
+        
+        return reducedState
     }
 }

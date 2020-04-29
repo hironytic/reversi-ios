@@ -33,19 +33,23 @@ public protocol Phase: Reducer, Hashable {
 extension Phase {
     public static func onEnter(state: State, previousPhase: AnyPhase) -> State { state }
     public static func onExit(state: State, nextPhase: AnyPhase) -> State { state }
+    public static func reduce(state: State, action: Action) -> State { state }
 }
 
 /// `Phase` のtype erasureです。
 public struct AnyPhase: Phase {
     class AnyPhaseBox {
-        var kind: PhaseKind { fatalError() }
-        
         func isEqual(to other: AnyPhaseBox) -> Bool { fatalError() }
         func hash(into hasher: inout Hasher) { fatalError() }
         
         class func reduce(state: State, action: Action) -> State { fatalError() }
+        
+        var kind: PhaseKind { fatalError() }
+        
         class func onEnter(state: State, previousPhase: AnyPhase) -> State { fatalError() }
         class func onExit(state: State, nextPhase: AnyPhase) -> State { fatalError() }
+        
+        var typelessBase: Any { fatalError() }
     }
     
     class PhaseBox<P: Phase>: AnyPhaseBox {
@@ -81,6 +85,10 @@ public struct AnyPhase: Phase {
         override class func onExit(state: State, nextPhase: AnyPhase) -> State {
             return P.onExit(state: state, nextPhase: nextPhase)
         }
+        
+        override var typelessBase: Any {
+            return base
+        }
     }
         
     let box: AnyPhaseBox
@@ -113,5 +121,9 @@ public struct AnyPhase: Phase {
     
     public static func onExit(state: State, nextPhase: AnyPhase) -> State {
         preconditionFailure("This function should not be called.")
+    }
+    
+    public var base: Any {
+        return box.typelessBase
     }
 }

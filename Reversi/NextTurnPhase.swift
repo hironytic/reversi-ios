@@ -7,7 +7,7 @@ extension PhaseKind {
 public struct NextTurnPhase: Phase {
     public var kind: PhaseKind { .nextTurn }
     
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
         
         state.turn?.flip()
@@ -32,7 +32,7 @@ public struct NextTurnPhase: Phase {
         return state
     }
     
-    public static func onExit(state: State, nextPhase: AnyPhase) -> State {
+    public func onExit(state: State, nextPhase: AnyPhase) -> State {
         // TODO: セーブ
         return state
     }

@@ -7,7 +7,7 @@ extension PhaseKind {
 public struct ResetPhase: Phase {
     public var kind: PhaseKind { .reset }
     
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
         
         // リセットして、入力待ちフェーズへ遷移
@@ -20,7 +20,7 @@ public struct ResetPhase: Phase {
         return state
     }
     
-    public static func onExit(state: State, nextPhase: AnyPhase) -> State {
+    public func onExit(state: State, nextPhase: AnyPhase) -> State {
         // TODO: セーブ
         return state
     }

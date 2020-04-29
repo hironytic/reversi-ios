@@ -7,7 +7,7 @@ extension PhaseKind {
 public struct PassPhase: Phase {
     public var kind: PhaseKind { .pass }
     
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
         
         // パスの表示をゲーム外部に依頼
@@ -16,7 +16,7 @@ public struct PassPhase: Phase {
         return state
     }
     
-    public static func onExit(state: State, nextPhase: AnyPhase) -> State {
+    public func onExit(state: State, nextPhase: AnyPhase) -> State {
         var state = state
         
         state.passNotificationRequest = nil
@@ -24,7 +24,7 @@ public struct PassPhase: Phase {
         return state
     }
     
-    public static func reduce(state: State, action: Action) -> State {
+    public func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

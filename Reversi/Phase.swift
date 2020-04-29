@@ -20,20 +20,20 @@ public protocol Phase: Reducer, Hashable {
     ///   - state: 現在の状態です。
     ///   - previousPhase: 以前のフェーズが渡されます。
     ///   -
-    static func onEnter(state: State, previousPhase: AnyPhase) -> State
+    func onEnter(state: State, previousPhase: AnyPhase) -> State
     
     /// このフェーズから別のフェーズに遷移するときに呼ばれます。
     /// 必要に応じて状態を変更することができます。
     /// - Parameters:
     ///   - state: 現在の状態です。
     ///   - nextPhase: 次のフェーズが渡されます。
-    static func onExit(state: State, nextPhase: AnyPhase) -> State
+    func onExit(state: State, nextPhase: AnyPhase) -> State
 }
 
 extension Phase {
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State { state }
-    public static func onExit(state: State, nextPhase: AnyPhase) -> State { state }
-    public static func reduce(state: State, action: Action) -> State { state }
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State { state }
+    public func onExit(state: State, nextPhase: AnyPhase) -> State { state }
+    public func reduce(state: State, action: Action) -> State { state }
 }
 
 /// `Phase` のtype erasureです。
@@ -42,12 +42,12 @@ public struct AnyPhase: Phase {
         func isEqual(to other: AnyPhaseBox) -> Bool { fatalError() }
         func hash(into hasher: inout Hasher) { fatalError() }
         
-        class func reduce(state: State, action: Action) -> State { fatalError() }
+        func reduce(state: State, action: Action) -> State { fatalError() }
         
         var kind: PhaseKind { fatalError() }
         
-        class func onEnter(state: State, previousPhase: AnyPhase) -> State { fatalError() }
-        class func onExit(state: State, nextPhase: AnyPhase) -> State { fatalError() }
+        func onEnter(state: State, previousPhase: AnyPhase) -> State { fatalError() }
+        func onExit(state: State, nextPhase: AnyPhase) -> State { fatalError() }
         
         var typelessBase: Any { fatalError() }
     }
@@ -70,20 +70,20 @@ public struct AnyPhase: Phase {
             base.hash(into: &hasher)
         }
         
-        override class func reduce(state: State, action: Action) -> State {
-            return P.reduce(state: state, action: action)
+        override func reduce(state: State, action: Action) -> State {
+            return base.reduce(state: state, action: action)
         }
         
         override var kind: PhaseKind {
             return base.kind
         }
 
-        override class func onEnter(state: State, previousPhase: AnyPhase) -> State {
-            return P.onEnter(state: state, previousPhase: previousPhase)
+        override func onEnter(state: State, previousPhase: AnyPhase) -> State {
+            return base.onEnter(state: state, previousPhase: previousPhase)
         }
         
-        override class func onExit(state: State, nextPhase: AnyPhase) -> State {
-            return P.onExit(state: state, nextPhase: nextPhase)
+        override func onExit(state: State, nextPhase: AnyPhase) -> State {
+            return base.onExit(state: state, nextPhase: nextPhase)
         }
         
         override var typelessBase: Any {
@@ -109,18 +109,18 @@ public struct AnyPhase: Phase {
         box.hash(into: &hasher)
     }
 
-    public static func reduce(state: State, action: Action) -> State {
-        preconditionFailure("This function should not be called.")
+    public func reduce(state: State, action: Action) -> State {
+        return box.reduce(state: state, action: action)
     }
     
     public var kind: PhaseKind { box.kind }
 
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
-        preconditionFailure("This function should not be called.")
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
+        return box.onEnter(state: state, previousPhase: previousPhase)
     }
     
-    public static func onExit(state: State, nextPhase: AnyPhase) -> State {
-        preconditionFailure("This function should not be called.")
+    public func onExit(state: State, nextPhase: AnyPhase) -> State {
+        return box.onExit(state: state, nextPhase: nextPhase)
     }
     
     public var base: Any {

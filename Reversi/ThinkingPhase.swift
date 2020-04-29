@@ -14,19 +14,17 @@ public struct ThinkingPhase: Phase {
     
     public var kind: PhaseKind { .thinking }
     
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         if let turn = state.turn {
             // 思考を開始
             if let (x, y) = state.board.validMoves(for: turn).randomElement() {
                 // 実はもう打つ手は決まったのだが、もったいぶって（？）
                 // 時間を置いてから打つ
-                let phase = state.phase.base as! ThinkingPhase
-                let currentId = phase.thinkingId
-                DispatchQueue.main.asyncAfter(deadline: .now() + phase.thinkingDuration) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + self.thinkingDuration) {
                     if let game = Game.current {
                         game.dispatch { state in
                             // 時間をつぶして戻ってきてもまだこのフェーズにいるときだけ打つ。
-                            if let phase = state.phase.base as? ThinkingPhase, phase.thinkingId == currentId {
+                            if let phase = state.phase.base as? ThinkingPhase, phase.thinkingId == self.thinkingId {
                                 return .boardCellSelected(x: x, y: y)
                             }
                             return nil
@@ -35,11 +33,11 @@ public struct ThinkingPhase: Phase {
                 }
             }
         }
-
+        
         return state
     }
     
-    public static func reduce(state: State, action: Action) -> State {
+    public func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

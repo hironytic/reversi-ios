@@ -1,27 +1,17 @@
 import Foundation
 import Combine
 
+/// アクションに応じて状態を変更する `reduce` メソッドを持ちます。
+/// このプロトコルは基本的に値型で準拠することを想定しています。
+/// また、自身の型で保持する値であっても、直接書き換えるといった
+/// 戻り値のStateを変更する以外の方法で状態を変更してはいけません。
 public protocol Reducer {
     /// アクションに応じて状態を変更します。
     /// - Parameters:
     ///   - state: 変更前の状態です。
     ///   - action: 状態変更を要求するアクションです。
     /// - Returns: 変更後の状態を返します。
-    static func reduce(state: State, action: Action) -> State
-}
-
-private extension AnyPhase {
-    func reduce(state: State, action: Action) -> State {
-        return type(of: box).reduce(state: state, action: action)
-    }
-
-    func onEnter(state: State, previousPhase: AnyPhase) -> State {
-        return type(of: box).onEnter(state: state, previousPhase: previousPhase)
-    }
-    
-    func onExit(state: State, nextPhase: AnyPhase) -> State {
-        return type(of: box).onExit(state: state, nextPhase: nextPhase)
-    }
+    func reduce(state: State, action: Action) -> State
 }
 
 public enum GameError: Error {
@@ -38,9 +28,16 @@ public class Game {
     /// 現在の状態の発行元
     public let statePublisher: AnyPublisher<State, Never>
 
+    /// 状態を変更するものです。
+    public let reducer: Reducer
+
     /// 新規ゲームの開始状態で初期化します。
     public convenience init() {
-        self.init(state: State(board: Board(), turn: .dark, playerModes: [.manual, .manual], phase: AnyPhase(InitialPhase())))
+        let state = State(board: Board(),
+                          turn: .dark,
+                          playerModes: [.manual, .manual],
+                          phase: AnyPhase(InitialPhase()))
+        self.init(state: state, reducer: MainReducer())
     }
 
     /// 保存した状態で初期化します。
@@ -52,7 +49,8 @@ public class Game {
     }
 
     /// 指定された状態で初期化します。
-    public init(state: State) {
+    public init(state: State, reducer: Reducer) {
+        self.reducer = reducer
         stateHolder = CurrentValueSubject(state)
         statePublisher = stateHolder
             .eraseToAnyPublisher()
@@ -61,7 +59,7 @@ public class Game {
     /// ディスパッチメイン処理
     private func dispatchCore(action: Action) {
         let currentState = stateHolder.value
-        var reducedState = MainReducer.reduce(state: currentState, action: action)
+        var reducedState = reducer.reduce(state: currentState, action: action)
         
         // フェーズの遷移を処理
         let prevPhase = currentState.phase
@@ -108,8 +106,8 @@ public class Game {
     }
 }
 
-private enum MainReducer: Reducer {
-    static func reduce(state: State, action: Action) -> State {
+public struct MainReducer: Reducer {
+    public func reduce(state: State, action: Action) -> State {
         var state = state
         let currentPhase = state.phase
 

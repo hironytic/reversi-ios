@@ -7,7 +7,7 @@ extension PhaseKind {
 public struct WaitForPlayerPhase: Phase {
     public var kind: PhaseKind { .waitForPlayer }
     
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
         
         // このターンがコンピューターに任せられているのなら
@@ -19,7 +19,7 @@ public struct WaitForPlayerPhase: Phase {
         return state
     }
     
-    public static func reduce(state: State, action: Action) -> State {
+    public func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

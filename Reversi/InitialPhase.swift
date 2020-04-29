@@ -7,7 +7,7 @@ extension PhaseKind {
 public struct InitialPhase: Phase {
     public var kind: PhaseKind { .initial }
     
-    public static func reduce(state: State, action: Action) -> State {
+    public func reduce(state: State, action: Action) -> State {
         var reducedState = state
         
         switch action {

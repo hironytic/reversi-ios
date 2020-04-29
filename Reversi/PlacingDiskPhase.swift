@@ -13,12 +13,11 @@ public struct PlacingDiskPhase: Phase {
     
     public var kind: PhaseKind { .placingDisk }
     
-    public static func onEnter(state: State, previousPhase: AnyPhase) -> State {
+    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
         
         // 1つ目を取り出して、ゲーム外部に更新を依頼
-        let phase = state.phase.base as! PlacingDiskPhase
-        if let change = phase.cellChanges.first {
+        if let change = self.cellChanges.first {
             state.boardUpdateRequest = Request(.withAnimation(change))
         } else {
             // 反映するものがなくなったら、次のターンへ
@@ -28,7 +27,7 @@ public struct PlacingDiskPhase: Phase {
         return state
     }
     
-    public static func onExit(state: State, nextPhase: AnyPhase) -> State {
+    public func onExit(state: State, nextPhase: AnyPhase) -> State {
         var state = state
 
         state.boardUpdateRequest = nil
@@ -36,15 +35,14 @@ public struct PlacingDiskPhase: Phase {
         return state
     }
     
-    public static func reduce(state: State, action: Action) -> State {
+    public func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {
         case .boardUpdated(let requestId):
             if let request = state.boardUpdateRequest, request.requestId == requestId {
                 // 残りの変更の反映を依頼するフェーズへ
-                let phase = state.phase.base as! PlacingDiskPhase
-                state.phase = AnyPhase(PlacingDiskPhase(cellChanges: phase.cellChanges[1...]))
+                state.phase = AnyPhase(PlacingDiskPhase(cellChanges: self.cellChanges[1...]))
             }
             
         default:

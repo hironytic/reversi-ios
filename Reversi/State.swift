@@ -12,7 +12,13 @@ public struct State {
     public var playerModes: [PlayerMode]
     
     /// ゲームのフェーズです。
-    public var phase: AnyPhase
+    public var phase: AnyPhase = AnyPhase(InitialPhase())
+    
+    /// コンピューターが思考中に true になります。
+    public var thinking: Bool = false
+    
+    /// プレイヤーごとのディスク枚数です。
+    public var diskCount: [Int] = Disk.sides.map { _ in 0 }
 
     /// リバーシ盤の表示を更新する依頼が出ていれば値が設定されています。
     /// 依頼に答えたら `Action.boardUpdated` をディスパッチしてください。
@@ -26,13 +32,12 @@ public struct State {
     /// 依頼に答えて確認結果が得られたら `Action.resetConfirmed` をディスパッチしてください。
     public var resetConfirmationRequst: Request<Void>?    
     
-    public init(board: Board, turn: Disk?, playerModes: [PlayerMode], phase: AnyPhase) {
+    public init(board: Board, turn: Disk?, playerModes: [PlayerMode]) {
         precondition(playerModes.count == Disk.sides.count)
         
         self.board = board
         self.turn = turn
         self.playerModes = playerModes
-        self.phase = phase
     }
 }
 

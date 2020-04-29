@@ -5,12 +5,9 @@ extension PhaseKind {
 }
 
 public struct ThinkingPhase: Phase {
-    private let thinkingId = UniqueIdentifier()
-    private let thinkingDuration: Double
+    private static var thinkingDuration: Double = 2.0
     
-    public init(thinkingDuration: Double = 2.0) {
-        self.thinkingDuration = thinkingDuration
-    }
+    private let thinkingId = UniqueIdentifier()
     
     public var kind: PhaseKind { .thinking }
     
@@ -20,7 +17,7 @@ public struct ThinkingPhase: Phase {
             if let (x, y) = state.board.validMoves(for: turn).randomElement() {
                 // 実はもう打つ手は決まったのだが、もったいぶって（？）
                 // 時間を置いてから打つ
-                DispatchQueue.main.asyncAfter(deadline: .now() + self.thinkingDuration) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + ThinkingPhase.thinkingDuration) {
                     if let game = Game.current {
                         game.dispatch { state in
                             // 時間をつぶして戻ってきてもまだこのフェーズにいるときだけ打つ。
@@ -32,6 +29,8 @@ public struct ThinkingPhase: Phase {
                     }
                 }
             }
+        } else {
+            assertionFailure()
         }
         
         return state

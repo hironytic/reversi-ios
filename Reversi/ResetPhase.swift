@@ -16,6 +16,13 @@ public struct ResetPhase: Phase {
         state.turn = .dark
         state.playerModes = state.playerModes.map { _ in .manual }
         state.phase = AnyPhase(WaitForPlayerPhase())
+        state.thinking = false
+        for disk in Disk.sides {
+            state.diskCount[disk] = state.board.countDisks(of: disk)
+        }
+        state.boardUpdateRequest = nil
+        state.passNotificationRequest = nil
+        state.resetConfirmationRequst = nil
 
         return state
     }

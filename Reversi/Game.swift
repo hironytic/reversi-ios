@@ -35,8 +35,7 @@ public class Game {
     public convenience init() {
         let state = State(board: Board(),
                           turn: .dark,
-                          playerModes: [.manual, .manual],
-                          phase: AnyPhase(InitialPhase()))
+                          playerModes: [.manual, .manual])
         self.init(state: state, reducer: MainReducer())
     }
 

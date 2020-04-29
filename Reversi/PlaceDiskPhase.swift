@@ -23,7 +23,12 @@ public struct PlaceDiskPhase: Phase {
             if let cellChanges = try? state.board.placeDisk(turn, atX: self.x , y: self.y) {
                 // 置けたら
                 state.phase = AnyPhase(PlacingDiskPhase(cellChanges: cellChanges[...]))
+            } else {
+                // 置けなかったら `ThinkingPhase` へ
+                state.phase = AnyPhase(ThinkingPhase())
             }
+        } else {
+            assertionFailure()
         }
         
         return state

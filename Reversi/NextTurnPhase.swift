@@ -9,6 +9,11 @@ public struct NextTurnPhase: Phase {
     
     public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
+
+        // ディスク枚数をカウント
+        for disk in Disk.sides {
+            state.diskCount[disk] = state.board.countDisks(of: disk)
+        }
         
         state.turn?.flip()
         

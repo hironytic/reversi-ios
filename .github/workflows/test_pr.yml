@@ -1,0 +1,30 @@
+name: Build and Test on PR
+
+on: [pull_request]
+
+jobs:
+  build-and-test:
+
+    runs-on: macOS-latest
+
+    env:
+      # インストールされているXcodeの情報はここにあるので、適宜更新する必要あり
+      # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners#xcode
+      DEVELOPER_DIR: /Applications/Xcode_11.3.app/Contents/Developer
+      NSUnbufferedIO: YES
+
+    steps:
+      # チェックアウト
+      - uses: actions/checkout@v2
+
+      # Xcodeのバージョンを表示
+      - name: Show Xcode version 
+        run: xcodebuild -version
+
+      # インストールされているdestinationを表示
+      - name: Show destinations
+        run: xcodebuild -project Reversi.xcodeproj -scheme Reversi -showdestinations
+
+      # ビルドしてテストを走らせる
+      - name: Build and tests
+        run: set -o pipefail && xcodebuild clean test -project Reversi.xcodeproj -scheme Reversi -destination "name=iPhone 11" | xcpretty

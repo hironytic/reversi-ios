@@ -11,7 +11,7 @@ jobs:
       # インストールされているXcodeの情報はここらへんにあるので、適宜更新する必要あり
       # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners
       # https://github.com/actions/virtual-environments/blob/master/images/macos/macos-10.15-Readme.md#xcode
-      DEVELOPER_DIR: /Applications/Xcode_11.4.1/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_11.4.1.app/Contents/Developer
       NSUnbufferedIO: YES
 
     steps:

@@ -22,15 +22,15 @@ public struct State {
 
     /// リバーシ盤の表示を更新する依頼が出ていれば値が設定されています。
     /// 依頼に答えたら `Action.boardUpdated` をディスパッチしてください。
-    public var boardUpdateRequest: Request<BoardUpdate>?
+    public var boardUpdateRequest: DetailedRequest<BoardUpdate>?
 
     /// 「パス」を通知する依頼が出ていれば値が設定されています。
     /// 依頼に答えて通知が閉じられたら `Action.passDismissed` をディスパッチしてください。
-    public var passNotificationRequest: Request<Void>?
+    public var passNotificationRequest: Request?
     
     /// リセットの確認を表示する依頼が出ていれば値が設定されています。
     /// 依頼に答えて確認結果が得られたら `Action.resetConfirmed` をディスパッチしてください。
-    public var resetConfirmationRequst: Request<Void>?    
+    public var resetConfirmationRequst: Request?    
     
     public init(board: Board, turn: Disk?, playerModes: [PlayerMode]) {
         precondition(playerModes.count == Disk.sides.count)
@@ -42,7 +42,13 @@ public struct State {
 }
 
 /// ゲーム外部に出す依頼
-public struct Request<D> {
+public struct Request: Hashable {
+    /// 依頼の番号
+    public let requestId = UniqueIdentifier()
+}
+
+/// ゲーム外部に出す依頼（詳細付き）
+public struct DetailedRequest<D: Hashable>: Hashable {
     /// 依頼の番号
     public let requestId = UniqueIdentifier()
     
@@ -54,14 +60,8 @@ public struct Request<D> {
     }
 }
 
-extension Request where D == Void {
-    public init() {
-        self.init(())
-    }
-}
-
 /// リバーシ盤の表示更新の依頼内容
-public enum BoardUpdate {
+public enum BoardUpdate: Hashable {
     /// 「1つのセルをアニメーション付きで更新してください」という依頼
     case withAnimation(Board.CellChange)
     

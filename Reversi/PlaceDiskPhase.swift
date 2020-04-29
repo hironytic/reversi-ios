@@ -14,7 +14,10 @@ public struct PlaceDiskPhase: Phase {
     }
     
     public var kind: PhaseKind { .placeDisk }
-    
+    public var description: String {
+        return "\(kind.description)(x=\(x), y=\(y))"
+    }
+
     public func onEnter(state: State, previousPhase: AnyPhase) -> State {
         var state = state
         

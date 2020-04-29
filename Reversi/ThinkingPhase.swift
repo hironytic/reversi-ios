@@ -5,15 +5,21 @@ extension PhaseKind {
 }
 
 public struct ThinkingPhase: Phase {
-    private static var thinkingDuration: Double = 2.0
+    public static var thinkingDuration: Double = 2.0
     
     private let thinkingId = UniqueIdentifier()
     
     public var kind: PhaseKind { .thinking }
+    public var description: String {
+        return "\(kind.description)(thinkingId=\(thinkingId))"
+    }
     
     public func onEnter(state: State, previousPhase: AnyPhase) -> State {
+        var state = state
+        
         if let turn = state.turn {
             // 思考を開始
+            state.thinking = true
             if let (x, y) = state.board.validMoves(for: turn).randomElement() {
                 // 実はもう打つ手は決まったのだが、もったいぶって（？）
                 // 時間を置いてから打つ
@@ -32,6 +38,14 @@ public struct ThinkingPhase: Phase {
         } else {
             assertionFailure()
         }
+        
+        return state
+    }
+    
+    public func onExit(state: State, nextPhase: AnyPhase) -> State {
+        var state = state
+
+        state.thinking = false
         
         return state
     }

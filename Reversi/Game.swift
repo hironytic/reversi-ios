@@ -48,13 +48,22 @@ public class Game {
     }
 
     /// 指定された状態で初期化します。
-    public init(state: State, reducer: Reducer) {
+    public init(state: State, reducer: Reducer = MainReducer()) {
         self.reducer = reducer
         stateHolder = CurrentValueSubject(state)
         statePublisher = stateHolder
             .eraseToAnyPublisher()
     }
 
+    /// このオブジェクトを現在進行中のGameにします。
+    public func makeCurrent() {
+        Game.current = self
+    }
+    
+    private func outputLog(_ line: @autoclosure () -> String) {
+//        print(line())
+    }
+    
     /// ディスパッチメイン処理
     private func dispatchCore(action: Action) {
         let currentState = stateHolder.value
@@ -65,6 +74,7 @@ public class Game {
         var nextPhase = reducedState.phase
         if prevPhase != nextPhase {
             reducedState = prevPhase.onExit(state: reducedState, nextPhase: nextPhase)
+            outputLog("Phase: \(prevPhase) -> \(nextPhase)")
             nextPhase = reducedState.phase
             
             var retryNeeded = false
@@ -74,6 +84,8 @@ public class Game {
                     // 遷移したと思ったとたん別のところに遷移するなら
                     // もう一度抜けて入り直し
                     reducedState = nextPhase.onExit(state: reducedState, nextPhase: reducedState.phase)
+                    outputLog("Phase: \(nextPhase) -> \(reducedState.phase)")
+
                     nextPhase = reducedState.phase
                     retryNeeded = true
                 } else {
@@ -106,6 +118,8 @@ public class Game {
 }
 
 public struct MainReducer: Reducer {
+    public init() { }
+    
     public func reduce(state: State, action: Action) -> State {
         var state = state
         let currentPhase = state.phase

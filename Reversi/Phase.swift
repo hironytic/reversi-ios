@@ -1,16 +1,20 @@
 import Foundation
 
 /// フェーズの種別を表します。
-public struct PhaseKind: Hashable {
+public struct PhaseKind: Hashable, CustomStringConvertible {
     private let rawValue: String
     
     init(rawValue: String) {
         self.rawValue = rawValue
     }
+    
+    public var description: String {
+        return rawValue
+    }
 }
 
 /// ゲームのフェーズを表します。
-public protocol Phase: Reducer, Hashable {
+public protocol Phase: Reducer, Hashable, CustomStringConvertible {
     /// フェーズ種別です。
     var kind: PhaseKind { get }
     
@@ -34,10 +38,13 @@ extension Phase {
     public func onEnter(state: State, previousPhase: AnyPhase) -> State { state }
     public func onExit(state: State, nextPhase: AnyPhase) -> State { state }
     public func reduce(state: State, action: Action) -> State { state }
+    public var description: String {
+        return kind.description
+    }
 }
 
 /// `Phase` のtype erasureです。
-public struct AnyPhase: Phase {
+public struct AnyPhase: Phase, CustomStringConvertible {
     class AnyPhaseBox {
         func isEqual(to other: AnyPhaseBox) -> Bool { fatalError() }
         func hash(into hasher: inout Hasher) { fatalError() }
@@ -49,6 +56,7 @@ public struct AnyPhase: Phase {
         func onEnter(state: State, previousPhase: AnyPhase) -> State { fatalError() }
         func onExit(state: State, nextPhase: AnyPhase) -> State { fatalError() }
         
+        var description: String { fatalError() }
         var typelessBase: Any { fatalError() }
     }
     
@@ -86,6 +94,10 @@ public struct AnyPhase: Phase {
             return base.onExit(state: state, nextPhase: nextPhase)
         }
         
+        override var description: String {
+            return base.description
+        }
+        
         override var typelessBase: Any {
             return base
         }
@@ -121,6 +133,10 @@ public struct AnyPhase: Phase {
     
     public func onExit(state: State, nextPhase: AnyPhase) -> State {
         return box.onExit(state: state, nextPhase: nextPhase)
+    }
+    
+    public var description: String {
+        return box.description
     }
     
     public var base: Any {

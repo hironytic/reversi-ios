@@ -12,7 +12,7 @@ public struct ResetPhase: Phase {
         
         // リセットして、入力待ちフェーズへ遷移
         let cellChanges = state.board.reset()
-        state.boardUpdateRequest = Request(.withoutAnimation(cellChanges))
+        state.boardUpdateRequest = DetailedRequest(.withoutAnimation(cellChanges))
         state.turn = .dark
         state.playerModes = state.playerModes.map { _ in .manual }
         state.phase = AnyPhase(WaitForPlayerPhase())

@@ -19,24 +19,22 @@ public protocol Phase: Reducer, Hashable, CustomStringConvertible {
     var kind: PhaseKind { get }
     
     /// 別のフェーズからこのフェーズに遷移するときに呼ばれます。
-    /// 必要に応じて状態を変更することができます。
+    /// 必要に応じてサンクを返すことができます。
     /// - Parameters:
-    ///   - state: 現在の状態です。
     ///   - previousPhase: 以前のフェーズが渡されます。
-    ///   -
-    func onEnter(state: State, previousPhase: AnyPhase) -> State
+    func onEnter(previousPhase: AnyPhase) -> Thunk?
     
     /// このフェーズから別のフェーズに遷移するときに呼ばれます。
-    /// 必要に応じて状態を変更することができます。
+    /// 必要に応じてサンクを返すことができます。
     /// - Parameters:
     ///   - state: 現在の状態です。
     ///   - nextPhase: 次のフェーズが渡されます。
-    func onExit(state: State, nextPhase: AnyPhase) -> State
+    func onExit(nextPhase: AnyPhase) -> Thunk?
 }
 
 extension Phase {
-    public func onEnter(state: State, previousPhase: AnyPhase) -> State { state }
-    public func onExit(state: State, nextPhase: AnyPhase) -> State { state }
+    public func onEnter(previousPhase: AnyPhase) -> Thunk? { nil }
+    public func onExit(nextPhase: AnyPhase) -> Thunk? { nil }
     public func reduce(state: State, action: Action) -> State { state }
     public var description: String {
         return kind.description
@@ -45,7 +43,7 @@ extension Phase {
 
 /// `Phase` のtype erasureです。
 public struct AnyPhase: Phase, CustomStringConvertible {
-    class AnyPhaseBox {
+    private class AnyPhaseBox {
         func isEqual(to other: AnyPhaseBox) -> Bool { fatalError() }
         func hash(into hasher: inout Hasher) { fatalError() }
         
@@ -53,14 +51,14 @@ public struct AnyPhase: Phase, CustomStringConvertible {
         
         var kind: PhaseKind { fatalError() }
         
-        func onEnter(state: State, previousPhase: AnyPhase) -> State { fatalError() }
-        func onExit(state: State, nextPhase: AnyPhase) -> State { fatalError() }
+        func onEnter(previousPhase: AnyPhase) -> Thunk? { fatalError() }
+        func onExit(nextPhase: AnyPhase) -> Thunk? { fatalError() }
         
         var description: String { fatalError() }
         var typelessBase: Any { fatalError() }
     }
     
-    class PhaseBox<P: Phase>: AnyPhaseBox {
+    private class PhaseBox<P: Phase>: AnyPhaseBox {
         private let base: P
         init(_ base: P) {
             self.base = base
@@ -86,12 +84,12 @@ public struct AnyPhase: Phase, CustomStringConvertible {
             return base.kind
         }
 
-        override func onEnter(state: State, previousPhase: AnyPhase) -> State {
-            return base.onEnter(state: state, previousPhase: previousPhase)
+        override func onEnter(previousPhase: AnyPhase) -> Thunk? {
+            return base.onEnter(previousPhase: previousPhase)
         }
         
-        override func onExit(state: State, nextPhase: AnyPhase) -> State {
-            return base.onExit(state: state, nextPhase: nextPhase)
+        override func onExit(nextPhase: AnyPhase) -> Thunk? {
+            return base.onExit(nextPhase: nextPhase)
         }
         
         override var description: String {
@@ -103,7 +101,7 @@ public struct AnyPhase: Phase, CustomStringConvertible {
         }
     }
         
-    let box: AnyPhaseBox
+    private let box: AnyPhaseBox
     
     public init(_ base: AnyPhase) {
         box = base.box
@@ -127,12 +125,12 @@ public struct AnyPhase: Phase, CustomStringConvertible {
     
     public var kind: PhaseKind { box.kind }
 
-    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
-        return box.onEnter(state: state, previousPhase: previousPhase)
+    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+        return box.onEnter(previousPhase: previousPhase)
     }
     
-    public func onExit(state: State, nextPhase: AnyPhase) -> State {
-        return box.onExit(state: state, nextPhase: nextPhase)
+    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+        return box.onExit(nextPhase: nextPhase)
     }
     
     public var description: String {

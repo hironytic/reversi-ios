@@ -7,38 +7,48 @@ extension PhaseKind {
 public struct NextTurnPhase: Phase {
     public var kind: PhaseKind { .nextTurn }
     
-    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
-        var state = state
+    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+        return { (dispatcher, state) in
+            dispatcher.dispatch(ActionCreators.setState { state in
+                var state = state
 
-        // ディスク枚数をカウント
-        for disk in Disk.sides {
-            state.diskCount[disk] = state.board.countDisks(of: disk)
-        }
-        
-        state.turn?.flip()
-        
-        if let turn = state.turn {
-            if state.board.validMoves(for: turn).isEmpty {
-                if state.board.validMoves(for: turn.flipped).isEmpty {
-                    // 両方が置けなかったらゲーム終了
-                    state.phase = AnyPhase(GameOverPhase())
-                } else {
-                    // 相手は置けるのであれば「パス」
-                    state.phase = AnyPhase(PassPhase())
+                // ディスク枚数をカウント
+                for disk in Disk.sides {
+                    state.diskCount[disk] = state.board.countDisks(of: disk)
                 }
-            } else {
-                // 置けるのなら入力待ちへ
-                state.phase = AnyPhase(WaitForPlayerPhase())
-            }
-        } else {
-            assertionFailure()
+                
+                state.turn?.flip()
+                
+                if let turn = state.turn {
+                    if state.board.validMoves(for: turn).isEmpty {
+                        if state.board.validMoves(for: turn.flipped).isEmpty {
+                            // 両方が置けなかったらゲーム終了
+                            state.thunks.append { (dispatcher, _) in
+                                dispatcher.dispatch(ActionCreators.changePhase(to: GameOverPhase()))
+                            }
+                        } else {
+                            // 相手は置けるのであれば「パス」
+                            state.thunks.append { (dispatcher, _) in
+                                dispatcher.dispatch(ActionCreators.changePhase(to: PassPhase()))
+                            }
+                        }
+                    } else {
+                        // 置けるのなら入力待ちへ
+                        state.thunks.append { (dispatcher, _) in
+                            dispatcher.dispatch(ActionCreators.changePhase(to: WaitForPlayerPhase()))
+                        }                    }
+                } else {
+                    // ゲーム終了しているのに NextTurnPhase に来たのがおかしい
+                    assertionFailure()
+                }
+                
+                return state
+            })
         }
-        
-        return state
     }
     
-    public func onExit(state: State, nextPhase: AnyPhase) -> State {
+    public func onExit(nextPhase: AnyPhase) -> Thunk? {
         // TODO: セーブ
-        return state
+        return nil
     }
 }

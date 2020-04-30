@@ -7,31 +7,37 @@ extension PhaseKind {
 public struct InitialPhase: Phase {
     public var kind: PhaseKind { .initial }
 
-    public func onExit(state: State, nextPhase: AnyPhase) -> State {
-        var state = state
-        
-        // ゲームの準備が整って始まったところでいろいろ初期化して外部に伝える
-        state.thinking = false
-        for disk in Disk.sides {
-            state.diskCount[disk] = state.board.countDisks(of: disk)
-        }
-        state.boardUpdateRequest = nil
-        state.passNotificationRequest = nil
-        state.resetConfirmationRequst = nil
+    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+        // ゲームの準備が整って始まったところでいろいろ初期化する
+        return { (dispatcher, _) in
+            dispatcher.dispatch(ActionCreators.setState { state in
+                var state = state
+                                
+                state.thinking = false
+                for disk in Disk.sides {
+                    state.diskCount[disk] = state.board.countDisks(of: disk)
+                }
+                state.boardUpdateRequest = nil
+                state.passNotificationRequest = nil
+                state.resetConfirmationRequst = nil
 
-        return state
+                return state
+            })
+        }
     }
     
     public func reduce(state: State, action: Action) -> State {
-        var reducedState = state
+        var state = state
         
         switch action {
         case .start:
-            reducedState.phase = AnyPhase(WaitForPlayerPhase())
+            state.thunks.append { (dispatcher, state) in
+                dispatcher.dispatch(ActionCreators.changePhase(to: WaitForPlayerPhase()))
+            }
         default:
             break
         }
         
-        return reducedState
+        return state
     }
 }

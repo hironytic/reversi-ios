@@ -43,66 +43,6 @@ class GameTests: XCTestCase {
         wait(for: [exp], timeout: 3.0)
     }
     
-    func testPhaseChange() {
-        struct TestPhase1: Phase {
-            let enterExpectation: XCTestExpectation
-            let exitExpectation:  XCTestExpectation
-
-            init(enterExpectation: XCTestExpectation, exitExpectation: XCTestExpectation) {
-                self.enterExpectation = enterExpectation
-                self.exitExpectation = exitExpectation
-            }
-            
-            public var kind: PhaseKind { .test1 }
-            
-            func onEnter(state: State, previousPhase: AnyPhase) -> State {
-                self.enterExpectation.fulfill()
-                return state
-            }
-            
-            func onExit(state: State, nextPhase: AnyPhase) -> State {
-                self.exitExpectation.fulfill()
-                return state
-            }
-            
-            func reduce(state: State, action: Action) -> State {
-                var state = state
-
-                // なんでもいいのでアクションが来たらTestPhase2へ遷移
-                state.phase = AnyPhase(TestPhase2())
-                
-                return state
-            }
-        }
-        struct TestPhase2: Phase {
-            public var kind: PhaseKind { .test2 }
-        }
-
-        let test1Enter = expectation(description: "onEnter of test1")
-        test1Enter.isInverted = true
-        
-        let test1Exit = expectation(description: "onExit of test1")
-
-        let phase = TestPhase1(enterExpectation: test1Enter, exitExpectation: test1Exit)
-        var state = State(board: Board(), turn: .dark, playerModes: [.manual, .manual])
-        state.phase = AnyPhase(phase)
-        
-        let game = Game(state: state)
-
-        let stateChange = expectation(description: "change of state")
-        game.statePublisher
-            .sink { state in
-                if state.phase.kind == .test2 {
-                    stateChange.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-
-        game.dispatch(action: .start)
-        
-        wait(for: [stateChange, test1Enter, test1Exit], timeout: 3.0)
-    }
-    
     func testGameStartToNextTurn() {
         let game = Game()
         game.makeCurrent()
@@ -130,7 +70,7 @@ class GameTests: XCTestCase {
             
             return true
         })
-        game.dispatch(action: .start)
+        game.dispatch(.start)
         wait(for: [startingExpectation], timeout: 3.0)
 
         var requestId: UniqueIdentifier = .invalid
@@ -158,7 +98,7 @@ class GameTests: XCTestCase {
             }
             return false
         })
-        game.dispatch(action: .boardCellSelected(x: 2, y: 3))
+        game.dispatch(.boardCellSelected(x: 2, y: 3))
         wait(for: [dark23Expectation], timeout: 3.0)
 
         // --------
@@ -184,7 +124,7 @@ class GameTests: XCTestCase {
             }
             return false
         })
-        game.dispatch(action: .boardUpdated(requestId: requestId))
+        game.dispatch(.boardUpdated(requestId: requestId))
         wait(for: [dark33Expectation], timeout: 3.0)
 
         // --------
@@ -206,7 +146,7 @@ class GameTests: XCTestCase {
             
             return true
         })
-        game.dispatch(action: .boardUpdated(requestId: requestId))
+        game.dispatch(.boardUpdated(requestId: requestId))
         wait(for: [turnChangeExpectation], timeout: 3.0)
     }
     
@@ -234,7 +174,7 @@ class GameTests: XCTestCase {
             .compactMap { $0.boardUpdateRequest }
             .removeDuplicates()
             .sink { request in
-                game.dispatch(action: .boardUpdated(requestId: request.requestId))
+                game.dispatch(.boardUpdated(requestId: request.requestId))
             }
             .store(in: &cancellables)
         
@@ -249,7 +189,7 @@ class GameTests: XCTestCase {
             
             return true
         })
-        game.dispatch(action: .start)
+        game.dispatch(.start)
         wait(for: [startingExpectation], timeout: 3.0)
 
         // 思考中が終わるまで待つ

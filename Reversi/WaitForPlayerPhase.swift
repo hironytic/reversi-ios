@@ -7,16 +7,14 @@ extension PhaseKind {
 public struct WaitForPlayerPhase: Phase {
     public var kind: PhaseKind { .waitForPlayer }
     
-    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
-        var state = state
-        
-        // このターンがコンピューターに任せられているのなら
-        // コンピューターの思考フェーズへ遷移させる
-        if let turn = state.turn, state.playerModes[turn] == .computer {
-            state.phase = AnyPhase(ThinkingPhase())
+    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+        return { (dispatcher, state) in
+            // このターンがコンピューターに任せられているのなら
+            // コンピューターの思考フェーズへ遷移させる
+            if let turn = state.turn, state.playerModes[turn] == .computer {
+                dispatcher.dispatch(ActionCreators.changePhase(to: ThinkingPhase()))
+            }
         }
-        
-        return state
     }
     
     public func reduce(state: State, action: Action) -> State {
@@ -24,7 +22,9 @@ public struct WaitForPlayerPhase: Phase {
         
         switch action {
         case .boardCellSelected(x: let x, y: let y):
-            state.phase = AnyPhase(PlaceDiskPhase(x: x, y: y))
+            state.thunks.append { (dispatcher, _) in
+                dispatcher.dispatch(ActionCreators.changePhase(to: PlaceDiskPhase(x: x, y: y)))
+            }
             
         default:
             break

@@ -16,26 +16,30 @@ public struct PlacingDiskPhase: Phase {
         return "\(kind.description)(\(cellChanges.count) change(s) left)"
     }
 
-    public func onEnter(state: State, previousPhase: AnyPhase) -> State {
-        var state = state
-        
-        // 1つ目を取り出して、ゲーム外部に更新を依頼
-        if let change = self.cellChanges.first {
-            state.boardUpdateRequest = DetailedRequest(.withAnimation(change))
-        } else {
-            // 反映するものがなくなったら、次のターンへ
-            state.phase = AnyPhase(NextTurnPhase())
+    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+        return { (dispatcher, state) in
+            // 1つ目を取り出して、ゲーム外部に更新を依頼
+            if let change = self.cellChanges.first {
+                dispatcher.dispatch(ActionCreators.setState { state in
+                    var state = state
+                    state.boardUpdateRequest = DetailedRequest(.withAnimation(change))
+                    return state
+                })
+            } else {
+                // 反映するものがなくなったら、次のターンへ
+                dispatcher.dispatch(ActionCreators.changePhase(to: NextTurnPhase()))
+            }
         }
-        
-        return state
     }
     
-    public func onExit(state: State, nextPhase: AnyPhase) -> State {
-        var state = state
-
-        state.boardUpdateRequest = nil
-        
-        return state
+    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+        return { (dispatcher, state) in
+            dispatcher.dispatch(ActionCreators.setState { state in
+                var state = state
+                state.boardUpdateRequest = nil
+                return state
+            })
+        }
     }
     
     public func reduce(state: State, action: Action) -> State {
@@ -45,7 +49,9 @@ public struct PlacingDiskPhase: Phase {
         case .boardUpdated(let requestId):
             if let request = state.boardUpdateRequest, request.requestId == requestId {
                 // 残りの変更の反映を依頼するフェーズへ
-                state.phase = AnyPhase(PlacingDiskPhase(cellChanges: self.cellChanges[self.cellChanges.startIndex.advanced(by: 1)...]))
+                state.thunks.append { (dispatcher, _) in
+                    dispatcher.dispatch(ActionCreators.changePhase(to: PlacingDiskPhase(cellChanges: self.cellChanges[self.cellChanges.startIndex.advanced(by: 1)...])))
+                }
             }
             
         default:

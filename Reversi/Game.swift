@@ -3,8 +3,10 @@ import Combine
 
 /// アクションに応じて状態を変更する `reduce` メソッドを持ちます。
 /// このプロトコルは基本的に値型で準拠することを想定しています。
-/// また、自身の型で保持する値であっても、直接書き換えるといった
-/// 戻り値のStateを変更する以外の方法で状態を変更してはいけません。
+/// `reduce` メソッドでは、自身の型で保持する値であっても、
+/// 変更したStateを返す以外の方法で状態を変更してはいけません。
+/// また、このメソッド内では非同期処理の呼び出しなど
+/// 副作用のあることを行ってはいけません。
 public protocol Reducer {
     /// アクションに応じて状態を変更します。
     /// - Parameters:
@@ -14,12 +16,28 @@ public protocol Reducer {
     func reduce(state: State, action: Action) -> State
 }
 
+/// アクションをディスパッチするメソッドを持ちます。
+public protocol Dispatcher {
+    /// アクションをディスパッチします。
+    /// - Parameter action: アクション
+    func dispatch(_ action: Action)
+    
+    /// サンクを用いてアクションをディスパッチします。
+    /// - Parameter thunk: サンク
+    func dispatch(_ thunk: Thunk)
+}
+
+/// アクションのディスパッチを遅延実行させるための関数です。
+/// サンクの中では非同期処理の呼び出しなど副作用のある
+/// 動作を行っても構いません。
+public typealias Thunk = (Dispatcher, State) -> Void
+
 public enum GameError: Error {
     case restore(data: String)
 }
 
 /// ゲームの状態を保持し、アクションをディスパッチすることでゲームを進めます。
-public class Game {
+public class Game: Dispatcher {
     /// 現在進行中のゲームのインスタンス
     public static var current: Game?
     
@@ -64,56 +82,28 @@ public class Game {
 //        print(line())
     }
     
-    /// ディスパッチメイン処理
-    private func dispatchCore(action: Action) {
-        let currentState = stateHolder.value
-        var reducedState = reducer.reduce(state: currentState, action: action)
-        
-        // フェーズの遷移を処理
-        let prevPhase = currentState.phase
-        var nextPhase = reducedState.phase
-        if prevPhase != nextPhase {
-            reducedState = prevPhase.onExit(state: reducedState, nextPhase: nextPhase)
-            outputLog("Phase: \(prevPhase) -> \(nextPhase)")
-            nextPhase = reducedState.phase
-            
-            var retryNeeded = false
-            repeat {
-                reducedState = nextPhase.onEnter(state: reducedState, previousPhase: prevPhase)
-                if reducedState.phase != nextPhase {
-                    // 遷移したと思ったとたん別のところに遷移するなら
-                    // もう一度抜けて入り直し
-                    reducedState = nextPhase.onExit(state: reducedState, nextPhase: reducedState.phase)
-                    outputLog("Phase: \(nextPhase) -> \(reducedState.phase)")
-
-                    nextPhase = reducedState.phase
-                    retryNeeded = true
-                } else {
-                    retryNeeded = false
-                }
-            } while retryNeeded
-        }
-        
-        stateHolder.value = reducedState
-    }
-
     /// アクションをディスパッチします。
     /// - Parameter action: ディスパッチ対象のアクション
-    public func dispatch(action: Action) {
-        DispatchQueue.main.async { [weak self] in
-            self?.dispatchCore(action: action)
+    public func dispatch(_ action: Action) {
+        var state = stateHolder.value
+        state = reducer.reduce(state: state, action: action)
+
+        // サンクは取り出しておく
+        let thunks = state.thunks
+        state.thunks = []
+        
+        outputLog("Phase: \(state.phase)")
+        stateHolder.value = state
+        
+        for thunk in thunks {
+            dispatch(thunk)
         }
     }
-    
-    /// 指定された関数でアクションを生成してディスパッチします。
-    /// - Parameter actionCreator: アクションを生成する関数
-    public func dispatch(actionCreator: @escaping (State) -> Action?) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            if let action = actionCreator(self.stateHolder.value) {
-                self.dispatchCore(action: action)
-            }
-        }
+
+    /// サンクを用いてアクションをディスパッチします。
+    /// - Parameter thunk: サンク
+    public func dispatch(_ thunk: Thunk) {
+        thunk(self, stateHolder.value)
     }
 }
 
@@ -125,6 +115,10 @@ public struct MainReducer: Reducer {
         let currentPhase = state.phase
 
         switch action {
+        case ._setState(reducer: let reducer):
+            // 任意の状態変更
+            state = reducer.reduce(state: state, action: action)
+            
         case .reset:
             // リセットボタンが押されたらリセット確認依頼を出す
             state.resetConfirmationRequst = Request()

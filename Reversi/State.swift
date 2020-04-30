@@ -39,6 +39,9 @@ public struct State {
         self.turn = turn
         self.playerModes = playerModes
     }
+    
+    /// のちのタイミングでディスパッチされるサンクです。
+    public var thunks: [Thunk] = []
 }
 
 /// ゲーム外部に出す依頼

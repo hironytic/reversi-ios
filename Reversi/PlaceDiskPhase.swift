@@ -22,17 +22,17 @@ public struct PlaceDiskPhase: Phase {
         return { (dispatcher, state) in
             // ボードにディスクを置く。その変更分は `PlacingDiskPhase` で反映。
             if let turn = state.turn {
-                dispatcher.dispatch(ActionCreators.setState { state in
+                dispatcher.dispatch(.setState { state in
                     var state = state
                     if let cellChanges = try? state.board.placeDisk(turn, atX: self.x , y: self.y) {
                         // 置けたら
                         state.thunks.append { (dispatcher, _) in
-                            dispatcher.dispatch(ActionCreators.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[...])))
+                            dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[...])))
                         }
                     } else {
                         // 置けなかったら `ThinkingPhase` へ
                         state.thunks.append { (dispatcher, _) in
-                            dispatcher.dispatch(ActionCreators.changePhase(to: ThinkingPhase()))
+                            dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
                         }
                     }
                     return state

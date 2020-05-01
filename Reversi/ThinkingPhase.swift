@@ -18,7 +18,7 @@ public struct ThinkingPhase: Phase {
         return { (dispatcher, state) in
             if let turn = state.turn {
                 // 思考を開始
-                dispatcher.dispatch(ActionCreators.setState { state in
+                dispatcher.dispatch(.setState { state in
                     var state = state
                     state.thinking = true
                     return state
@@ -28,7 +28,7 @@ public struct ThinkingPhase: Phase {
                     // 実はもう打つ手は決まったのだが、もったいぶって（？）
                     // 時間を置いてから打つ
                     DispatchQueue.main.asyncAfter(deadline: .now() + ThinkingPhase.thinkingDuration) {
-                        dispatcher.dispatch({ (dispatcher, state) in
+                        dispatcher.dispatch(thunk: { (dispatcher, state) in
                             // 時間をつぶして戻ってきてもまだこのフェーズにいるときだけ打つ。
                             if let phase = state.phase.base as? ThinkingPhase, phase.thinkingId == self.thinkingId {
                                 dispatcher.dispatch(.boardCellSelected(x: x, y: y))
@@ -48,7 +48,7 @@ public struct ThinkingPhase: Phase {
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            dispatcher.dispatch(ActionCreators.setState { state in
+            dispatcher.dispatch(.setState { state in
                 var state = state
                 state.thinking = false
                 return state
@@ -65,13 +65,13 @@ public struct ThinkingPhase: Phase {
                 // 現在の対象のプレイヤーがマニュアルに変更されたら
                 // 入力待ちフェーズへ遷移
                 state.thunks.append { (dispatcher, _) in
-                    dispatcher.dispatch(ActionCreators.changePhase(to: WaitForPlayerPhase()))
+                    dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                 }
             }
             
         case .boardCellSelected(x: let x, y: let y):
             state.thunks.append { (dispatcher, _) in
-                dispatcher.dispatch(ActionCreators.changePhase(to: PlaceDiskPhase(x: x, y: y)))
+                dispatcher.dispatch(.changePhase(to: PlaceDiskPhase(x: x, y: y)))
             }
             
         default:

@@ -9,7 +9,7 @@ public struct ResetPhase: Phase {
     
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
-            dispatcher.dispatch(ActionCreators.setState { state in
+            dispatcher.dispatch(.setState { state in
                 var state = state
                 
                 // リセットして、入力待ちフェーズへ遷移
@@ -27,7 +27,7 @@ public struct ResetPhase: Phase {
 
                 return state
             })
-            dispatcher.dispatch(ActionCreators.changePhase(to: WaitForPlayerPhase()))
+            dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
         }
     }
     

@@ -9,7 +9,7 @@ public struct NextTurnPhase: Phase {
     
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            dispatcher.dispatch(ActionCreators.setState { state in
+            dispatcher.dispatch(.setState { state in
                 var state = state
 
                 // ディスク枚数をカウント
@@ -24,18 +24,18 @@ public struct NextTurnPhase: Phase {
                         if state.board.validMoves(for: turn.flipped).isEmpty {
                             // 両方が置けなかったらゲーム終了
                             state.thunks.append { (dispatcher, _) in
-                                dispatcher.dispatch(ActionCreators.changePhase(to: GameOverPhase()))
+                                dispatcher.dispatch(.changePhase(to: GameOverPhase()))
                             }
                         } else {
                             // 相手は置けるのであれば「パス」
                             state.thunks.append { (dispatcher, _) in
-                                dispatcher.dispatch(ActionCreators.changePhase(to: PassPhase()))
+                                dispatcher.dispatch(.changePhase(to: PassPhase()))
                             }
                         }
                     } else {
                         // 置けるのなら入力待ちへ
                         state.thunks.append { (dispatcher, _) in
-                            dispatcher.dispatch(ActionCreators.changePhase(to: WaitForPlayerPhase()))
+                            dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                         }                    }
                 } else {
                     // ゲーム終了しているのに NextTurnPhase に来たのがおかしい

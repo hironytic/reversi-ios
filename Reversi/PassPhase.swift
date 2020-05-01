@@ -9,7 +9,7 @@ public struct PassPhase: Phase {
     
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
-            dispatcher.dispatch(ActionCreators.setState { state in
+            dispatcher.dispatch(.setState { state in
                 var state = state
                 
                 // パスの表示をゲーム外部に依頼
@@ -22,7 +22,7 @@ public struct PassPhase: Phase {
     
     public func onExit(state: State, nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
-            dispatcher.dispatch(ActionCreators.setState { state in
+            dispatcher.dispatch(.setState { state in
                 var state = state
                 state.passNotificationRequest = nil
                 return state
@@ -38,7 +38,7 @@ public struct PassPhase: Phase {
             if let request = state.passNotificationRequest, request.requestId == requestId {
                 // パス表示を消したら次のターンへ
                 state.thunks.append { (dispatcher, _) in
-                    dispatcher.dispatch(ActionCreators.changePhase(to: NextTurnPhase()))
+                    dispatcher.dispatch(.changePhase(to: NextTurnPhase()))
                 }
             }
             

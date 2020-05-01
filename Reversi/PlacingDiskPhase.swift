@@ -20,21 +20,21 @@ public struct PlacingDiskPhase: Phase {
         return { (dispatcher, state) in
             // 1つ目を取り出して、ゲーム外部に更新を依頼
             if let change = self.cellChanges.first {
-                dispatcher.dispatch(ActionCreators.setState { state in
+                dispatcher.dispatch(.setState { state in
                     var state = state
                     state.boardUpdateRequest = DetailedRequest(.withAnimation(change))
                     return state
                 })
             } else {
                 // 反映するものがなくなったら、次のターンへ
-                dispatcher.dispatch(ActionCreators.changePhase(to: NextTurnPhase()))
+                dispatcher.dispatch(.changePhase(to: NextTurnPhase()))
             }
         }
     }
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            dispatcher.dispatch(ActionCreators.setState { state in
+            dispatcher.dispatch(.setState { state in
                 var state = state
                 state.boardUpdateRequest = nil
                 return state
@@ -50,7 +50,7 @@ public struct PlacingDiskPhase: Phase {
             if let request = state.boardUpdateRequest, request.requestId == requestId {
                 // 残りの変更の反映を依頼するフェーズへ
                 state.thunks.append { (dispatcher, _) in
-                    dispatcher.dispatch(ActionCreators.changePhase(to: PlacingDiskPhase(cellChanges: self.cellChanges[self.cellChanges.startIndex.advanced(by: 1)...])))
+                    dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: self.cellChanges[self.cellChanges.startIndex.advanced(by: 1)...])))
                 }
             }
             

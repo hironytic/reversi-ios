@@ -18,13 +18,29 @@ public protocol Reducer {
 
 /// アクションをディスパッチするメソッドを持ちます。
 public protocol Dispatcher {
+    /// アクションらしきものをディスパッチします。
+    /// - Parameter actionish: アクションらしきもの
+    func dispatch(_ actionish: Actionish)
+    
     /// アクションをディスパッチします。
     /// - Parameter action: アクション
-    func dispatch(_ action: Action)
+    func dispatch(action: Action)
     
     /// サンクを用いてアクションをディスパッチします。
     /// - Parameter thunk: サンク
-    func dispatch(_ thunk: Thunk)
+    func dispatch(thunk: Thunk)
+}
+
+extension Dispatcher {
+    public func dispatch(_ actionish: Actionish) {
+        switch actionish {
+        case .action(let action):
+            dispatch(action: action)
+            
+        case .thunk(let thunk):
+            dispatch(thunk: thunk)
+        }
+    }
 }
 
 /// アクションのディスパッチを遅延実行させるための関数です。
@@ -84,7 +100,7 @@ public class Game: Dispatcher {
     
     /// アクションをディスパッチします。
     /// - Parameter action: ディスパッチ対象のアクション
-    public func dispatch(_ action: Action) {
+    public func dispatch(action: Action) {
         var state = stateHolder.value
         state = reducer.reduce(state: state, action: action)
 
@@ -96,13 +112,13 @@ public class Game: Dispatcher {
         stateHolder.value = state
         
         for thunk in thunks {
-            dispatch(thunk)
+            dispatch(thunk: thunk)
         }
     }
 
     /// サンクを用いてアクションをディスパッチします。
     /// - Parameter thunk: サンク
-    public func dispatch(_ thunk: Thunk) {
+    public func dispatch(thunk: Thunk) {
         thunk(self, stateHolder.value)
     }
 }

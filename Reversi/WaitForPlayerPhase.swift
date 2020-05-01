@@ -12,7 +12,7 @@ public struct WaitForPlayerPhase: Phase {
             // このターンがコンピューターに任せられているのなら
             // コンピューターの思考フェーズへ遷移させる
             if let turn = state.turn, state.playerModes[turn] == .computer {
-                dispatcher.dispatch(ActionCreators.changePhase(to: ThinkingPhase()))
+                dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
             }
         }
     }
@@ -23,7 +23,7 @@ public struct WaitForPlayerPhase: Phase {
         switch action {
         case .boardCellSelected(x: let x, y: let y):
             state.thunks.append { (dispatcher, _) in
-                dispatcher.dispatch(ActionCreators.changePhase(to: PlaceDiskPhase(x: x, y: y)))
+                dispatcher.dispatch(.changePhase(to: PlaceDiskPhase(x: x, y: y)))
             }
             
         default:

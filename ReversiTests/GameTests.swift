@@ -70,7 +70,7 @@ class GameTests: XCTestCase {
             
             return true
         })
-        game.dispatch(.start)
+        game.dispatch(.start())
         wait(for: [startingExpectation], timeout: 3.0)
 
         var requestId: UniqueIdentifier = .invalid
@@ -189,7 +189,7 @@ class GameTests: XCTestCase {
             
             return true
         })
-        game.dispatch(.start)
+        game.dispatch(.start())
         wait(for: [startingExpectation], timeout: 3.0)
 
         // 思考中が終わるまで待つ

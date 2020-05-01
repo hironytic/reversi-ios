@@ -20,11 +20,7 @@ public struct PlacingDiskPhase: Phase {
         return { (dispatcher, state) in
             // 1つ目を取り出して、ゲーム外部に更新を依頼
             if let change = self.cellChanges.first {
-                dispatcher.dispatch(.setState { state in
-                    var state = state
-                    state.boardUpdateRequest = DetailedRequest(.withAnimation(change))
-                    return state
-                })
+                dispatcher.dispatch(.requestUpdateBoard(request: DetailedRequest(.withAnimation(change))))
             } else {
                 // 反映するものがなくなったら、次のターンへ
                 dispatcher.dispatch(.changePhase(to: NextTurnPhase()))
@@ -34,11 +30,7 @@ public struct PlacingDiskPhase: Phase {
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-                state.boardUpdateRequest = nil
-                return state
-            })
+            dispatcher.dispatch(.requestUpdateBoard(request: nil))
         }
     }
     

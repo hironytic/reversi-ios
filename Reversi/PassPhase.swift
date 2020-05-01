@@ -9,24 +9,15 @@ public struct PassPhase: Phase {
     
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-                
-                // パスの表示をゲーム外部に依頼
-                state.passNotificationRequest = Request()
-                
-                return state
-            })
+            // パスの表示をゲーム外部に依頼
+            dispatcher.dispatch(.requestPassNotification(true))
         }
     }
     
     public func onExit(state: State, nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-                state.passNotificationRequest = nil
-                return state
-            })
+            // パス表示リクエストを取り下げ
+            dispatcher.dispatch(.requestPassNotification(false))
         }
     }
     

@@ -22,26 +22,36 @@ public struct PlaceDiskPhase: Phase {
         return { (dispatcher, state) in
             // ボードにディスクを置く。その変更分は `PlacingDiskPhase` で反映。
             if let turn = state.turn {
-                dispatcher.dispatch(.setState { state in
-                    var state = state
-                    if let cellChanges = try? state.board.placeDisk(turn, atX: self.x , y: self.y) {
-                        // 置けたら
-                        state.loop { (dispatcher, _) in
-                            dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[...])))
-                        }
-                    } else {
-                        // 置けなかったら `ThinkingPhase` へ
-                        state.loop { (dispatcher, _) in
-                            dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
-                        }
-                    }
-                    return state
-                })
+                dispatcher.dispatch(.placeDisk(disk: turn, x: self.x, y: self.y))
             } else {
                 // ゲームが終了しているのにPlaceDiskPhaseに来たということなのでおかしい
                 assertionFailure()
             }
 
         }
+    }
+    
+    public func reduce(state: State, action: Action) -> State {
+        var state = state
+        
+        switch action {
+        case .placeDisk(disk: let disk, x: let x, y: let y):
+            if let cellChanges = try? state.board.placeDisk(disk, atX: x , y: y) {
+                // 置けたら
+                state.loop { (dispatcher, _) in
+                    dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[...])))
+                }
+            } else {
+                // 置けなかったら `ThinkingPhase` へ
+                state.loop { (dispatcher, _) in
+                    dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
+                }
+            }
+            
+        default:
+            break
+        }
+        
+        return state
     }
 }

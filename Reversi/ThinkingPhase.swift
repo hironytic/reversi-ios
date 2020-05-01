@@ -18,11 +18,7 @@ public struct ThinkingPhase: Phase {
         return { (dispatcher, state) in
             if let turn = state.turn {
                 // 思考を開始
-                dispatcher.dispatch(.setState { state in
-                    var state = state
-                    state.thinking = true
-                    return state
-                })
+                dispatcher.dispatch(.setThinking(true))
                 
                 if let (x, y) = state.board.validMoves(for: turn).randomElement() {
                     // 実はもう打つ手は決まったのだが、もったいぶって（？）
@@ -48,11 +44,8 @@ public struct ThinkingPhase: Phase {
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-                state.thinking = false
-                return state
-            })
+            // 思考を終了
+            dispatcher.dispatch(.setThinking(false))
         }
     }
     

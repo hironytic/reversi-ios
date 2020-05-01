@@ -9,46 +9,54 @@ public struct NextTurnPhase: Phase {
     
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-
-                // ディスク枚数をカウント
-                for disk in Disk.sides {
-                    state.diskCount[disk] = state.board.countDisks(of: disk)
-                }
-                
-                state.turn?.flip()
-                
-                if let turn = state.turn {
-                    if state.board.validMoves(for: turn).isEmpty {
-                        if state.board.validMoves(for: turn.flipped).isEmpty {
-                            // 両方が置けなかったらゲーム終了
-                            state.loop { (dispatcher, _) in
-                                dispatcher.dispatch(.changePhase(to: GameOverPhase()))
-                            }
-                        } else {
-                            // 相手は置けるのであれば「パス」
-                            state.loop { (dispatcher, _) in
-                                dispatcher.dispatch(.changePhase(to: PassPhase()))
-                            }
-                        }
-                    } else {
-                        // 置けるのなら入力待ちへ
-                        state.loop { (dispatcher, _) in
-                            dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
-                        }                    }
-                } else {
-                    // ゲーム終了しているのに NextTurnPhase に来たのがおかしい
-                    assertionFailure()
-                }
-                
-                return state
-            })
+            dispatcher.dispatch(.nextTurn())
         }
     }
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         // TODO: セーブ
         return nil
+    }
+    
+    public func reduce(state: State, action: Action) -> State {
+        var state = state
+        
+        switch action {
+        case .nextTurn:
+            // ディスク枚数をカウント
+            for disk in Disk.sides {
+                state.diskCount[disk] = state.board.countDisks(of: disk)
+            }
+            
+            state.turn?.flip()
+            
+            if let turn = state.turn {
+                if state.board.validMoves(for: turn).isEmpty {
+                    if state.board.validMoves(for: turn.flipped).isEmpty {
+                        // 両方が置けなかったらゲーム終了
+                        state.loop { (dispatcher, _) in
+                            dispatcher.dispatch(.changePhase(to: GameOverPhase()))
+                        }
+                    } else {
+                        // 相手は置けるのであれば「パス」
+                        state.loop { (dispatcher, _) in
+                            dispatcher.dispatch(.changePhase(to: PassPhase()))
+                        }
+                    }
+                } else {
+                    // 置けるのなら入力待ちへ
+                    state.loop { (dispatcher, _) in
+                        dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
+                    }                    }
+            } else {
+                // ゲーム終了しているのに NextTurnPhase に来たのがおかしい
+                assertionFailure()
+            }
+
+        default:
+            break
+        }
+        
+        return state
     }
 }

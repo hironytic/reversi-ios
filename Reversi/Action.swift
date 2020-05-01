@@ -9,6 +9,7 @@ public enum Actionish {
     case thunk(Thunk)
 }
 
+// 外部からディスパッチしてもらうもの
 extension Actionish {
     /// ゲームを開始するときにこのメソッドの結果をディスパッチします。
     public static func start() -> Actionish {
@@ -46,6 +47,7 @@ extension Actionish {
     }
 }
 
+// エンジン内部でディスパッチするもの
 extension Actionish {
     static func changePhase<P: Phase>(to phase: P) -> Actionish {
         return changePhase(to: AnyPhase(phase))
@@ -67,11 +69,7 @@ extension Actionish {
                 }
                 
                 // フェーズを変更する
-                dispatcher.dispatch(.setState { state in
-                    var state = state
-                    state.phase = phase
-                    return state
-                })
+                dispatcher.dispatch(action: .changePhase(nextPhase: phase))
                 
                 // 次のフェーズのonEnterを呼び出す
                 if let thunk = phase.onEnter(previousPhase: prevPhase) {
@@ -81,17 +79,39 @@ extension Actionish {
         })
     }
     
-    /// Reducer相当のクロージャーを指定して任意に状態を変更できるアクションを生成します。
-    /// - Parameter closure: 状態を変更する方法
-    /// - Returns: 生成したアクションを返します。
-    static func setState(closure: @escaping (State) -> State) -> Actionish {
-        struct ClosureReducer: Reducer {
-            let closure: (State) -> State
-            func reduce(state: State, action: Action) -> State {
-                return closure(state)
-            }
-        }
-        return .action(._setState(reducer: ClosureReducer(closure: closure)))
+    /// ゲーム開始時に状態を初期化するアクションを生成します。
+    static func initializeStateWhenStarted() -> Actionish {
+        return .action(.initializeStateWhenStarted)
+    }
+
+    /// 思考中かどうかの値を変更するアクションを生成します。
+    static func setThinking(_ thinking: Bool) -> Actionish {
+        return .action(.setThinking(thinking))
+    }
+
+    /// 指定された位置にディスクを置くアクションを生成します。
+    static func placeDisk(disk: Disk, x: Int, y: Int) -> Actionish {
+        return .action(.placeDisk(disk: disk, x: x, y: y))
+    }
+    
+    /// リバーシ盤の更新を外部に要求するアクションを生成します。
+    static func requestUpdateBoard(request: DetailedRequest<BoardUpdate>?) -> Actionish {
+        return .action(.requestUpdateBoard(request: request))
+    }
+
+    /// パスの通知を外部に要求するアクションを生成します。
+    static func requestPassNotification(_ doRequest: Bool) -> Actionish {
+        return .action(.requestPassNotification(doRequest))
+    }
+    
+    /// 次のターンへ変更するアクションを生成します。
+    static func nextTurn() -> Actionish {
+        return .action(.nextTurn)
+    }
+
+    /// リセットを実行するアクションを生成します。
+    static func doReset() -> Actionish {
+        return .action(.doReset)
     }
 }
 
@@ -118,7 +138,27 @@ public enum Action {
     /// リバーシ盤の更新が完了したときにディスパッチするアクションです。
     case boardUpdated(requestId: UniqueIdentifier)
 
-    /// （内部利用）状態変更の方法を指示したアクションです。
-    case _setState(reducer: Reducer)
+    /// フェーズを変更するアクションです。
+    case changePhase(nextPhase: AnyPhase)
+    
+    /// ゲーム開始時に状態を初期化するアクションです。
+    case initializeStateWhenStarted
+    
+    /// 思考中かどうかの値を変更するアクションです。
+    case setThinking(Bool)
+    
+    /// (x, y)で指定された位置にディスクを置くアクションです。
+    case placeDisk(disk: Disk, x: Int, y: Int)
+    
+    /// リバーシ盤の更新を外部に要求するアクションです。
+    case requestUpdateBoard(request: DetailedRequest<BoardUpdate>?)
+    
+    /// パスの通知を外部に要求するアクションです。
+    case requestPassNotification(Bool)
+    
+    /// 次のターンへ変更するアクションです。
+    case nextTurn
+    
+    /// リセットを実行するアクションです。
+    case doReset
 }
-

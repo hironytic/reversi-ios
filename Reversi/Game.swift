@@ -108,7 +108,7 @@ public class Game: Dispatcher {
         let thunks = state._loops
         state._loops = []
         
-        outputLog("Phase: \(state.phase)")
+        outputLog("(Phase: \(stateHolder.value.phase), Action: \(action)) -> Phase: \(state.phase)")
         stateHolder.value = state
         
         for thunk in thunks {
@@ -129,11 +129,32 @@ public struct MainReducer: Reducer {
     public func reduce(state: State, action: Action) -> State {
         var state = state
         let currentPhase = state.phase
+        var phaseChanged = false
 
         switch action {
-        case ._setState(reducer: let reducer):
-            // 任意の状態変更
-            state = reducer.reduce(state: state, action: action)
+        case .changePhase(nextPhase: let nextPhase):
+            // フェーズの変更
+            state.phase = nextPhase
+            phaseChanged = true
+
+        case .initializeStateWhenStarted:
+            // ゲーム開始時の状態初期化
+            state.thinking = false
+            for disk in Disk.sides {
+                state.diskCount[disk] = state.board.countDisks(of: disk)
+            }
+            state.boardUpdateRequest = nil
+            state.passNotificationRequest = nil
+            state.resetConfirmationRequst = nil
+        
+        case .setThinking(let thinking):
+            state.thinking = thinking
+            
+        case .requestUpdateBoard(request: let request):
+            state.boardUpdateRequest = request
+            
+        case .requestPassNotification(let doRequest):
+            state.passNotificationRequest = doRequest ? Request() : nil
             
         case .reset:
             // リセットボタンが押されたらリセット確認依頼を出す
@@ -155,7 +176,7 @@ public struct MainReducer: Reducer {
         }
         
         // フェーズが変わらなければ、フェーズにreduceさせる
-        if currentPhase == state.phase {
+        if !phaseChanged {
             state = currentPhase.reduce(state: state, action: action)
         }
         

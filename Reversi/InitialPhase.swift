@@ -10,19 +10,7 @@ public struct InitialPhase: Phase {
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         // ゲームの準備が整って始まったところでいろいろ初期化する
         return { (dispatcher, _) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-                                
-                state.thinking = false
-                for disk in Disk.sides {
-                    state.diskCount[disk] = state.board.countDisks(of: disk)
-                }
-                state.boardUpdateRequest = nil
-                state.passNotificationRequest = nil
-                state.resetConfirmationRequst = nil
-
-                return state
-            })
+            dispatcher.dispatch(.initializeStateWhenStarted())
         }
     }
     

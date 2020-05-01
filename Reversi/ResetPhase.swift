@@ -9,30 +9,40 @@ public struct ResetPhase: Phase {
     
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
-            dispatcher.dispatch(.setState { state in
-                var state = state
-                
-                // リセットして、入力待ちフェーズへ遷移
-                let cellChanges = state.board.reset()
-                state.boardUpdateRequest = DetailedRequest(.withoutAnimation(cellChanges))
-                state.turn = .dark
-                state.playerModes = state.playerModes.map { _ in .manual }
-                state.thinking = false
-                for disk in Disk.sides {
-                    state.diskCount[disk] = state.board.countDisks(of: disk)
-                }
-                state.boardUpdateRequest = nil
-                state.passNotificationRequest = nil
-                state.resetConfirmationRequst = nil
-
-                return state
-            })
-            dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
+            dispatcher.dispatch(.doReset())
         }
     }
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
         // TODO: セーブ
         return nil
+    }
+    
+    public func reduce(state: State, action: Action) -> State {
+        var state = state
+        
+        switch action {
+        case .doReset:
+            // リセットして、入力待ちフェーズへ遷移
+            let cellChanges = state.board.reset()
+            state.boardUpdateRequest = DetailedRequest(.withoutAnimation(cellChanges))
+            state.turn = .dark
+            state.playerModes = state.playerModes.map { _ in .manual }
+            state.thinking = false
+            for disk in Disk.sides {
+                state.diskCount[disk] = state.board.countDisks(of: disk)
+            }
+            state.boardUpdateRequest = nil
+            state.passNotificationRequest = nil
+            state.resetConfirmationRequst = nil
+            state.loop { (dispatcher, _) in
+                dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
+            }
+
+        default:
+            break
+        }
+        
+        return state
     }
 }

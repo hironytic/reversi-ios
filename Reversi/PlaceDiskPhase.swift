@@ -26,12 +26,12 @@ public struct PlaceDiskPhase: Phase {
                     var state = state
                     if let cellChanges = try? state.board.placeDisk(turn, atX: self.x , y: self.y) {
                         // 置けたら
-                        state.thunks.append { (dispatcher, _) in
+                        state.loop { (dispatcher, _) in
                             dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[...])))
                         }
                     } else {
                         // 置けなかったら `ThinkingPhase` へ
-                        state.thunks.append { (dispatcher, _) in
+                        state.loop { (dispatcher, _) in
                             dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
                         }
                     }

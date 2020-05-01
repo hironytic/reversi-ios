@@ -23,18 +23,18 @@ public struct NextTurnPhase: Phase {
                     if state.board.validMoves(for: turn).isEmpty {
                         if state.board.validMoves(for: turn.flipped).isEmpty {
                             // 両方が置けなかったらゲーム終了
-                            state.thunks.append { (dispatcher, _) in
+                            state.loop { (dispatcher, _) in
                                 dispatcher.dispatch(.changePhase(to: GameOverPhase()))
                             }
                         } else {
                             // 相手は置けるのであれば「パス」
-                            state.thunks.append { (dispatcher, _) in
+                            state.loop { (dispatcher, _) in
                                 dispatcher.dispatch(.changePhase(to: PassPhase()))
                             }
                         }
                     } else {
                         // 置けるのなら入力待ちへ
-                        state.thunks.append { (dispatcher, _) in
+                        state.loop { (dispatcher, _) in
                             dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                         }                    }
                 } else {

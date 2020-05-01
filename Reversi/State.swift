@@ -40,8 +40,16 @@ public struct State {
         self.playerModes = playerModes
     }
     
+    /// のちのタイミングでディスパッチしてほしいサンクを登録します。
+    public mutating func loop(thunk: @escaping Thunk) {
+        _loops.append(thunk)
+    }
+    
     /// のちのタイミングでディスパッチされるサンクです。
-    public var thunks: [Thunk] = []
+    /// これは本来のStateの一部ではありません。
+    /// `loop` を実現するために `State` に場所を間借りしているもので、
+    /// このプロパティの値は状態として記録されるべきではありません。
+    public var _loops: [Thunk] = []
 }
 
 /// ゲーム外部に出す依頼

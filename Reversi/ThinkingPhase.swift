@@ -64,13 +64,13 @@ public struct ThinkingPhase: Phase {
             if let turn = state.turn, turn == player && mode == .manual {
                 // 現在の対象のプレイヤーがマニュアルに変更されたら
                 // 入力待ちフェーズへ遷移
-                state.thunks.append { (dispatcher, _) in
+                state.loop { (dispatcher, _) in
                     dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                 }
             }
             
         case .boardCellSelected(x: let x, y: let y):
-            state.thunks.append { (dispatcher, _) in
+            state.loop { (dispatcher, _) in
                 dispatcher.dispatch(.changePhase(to: PlaceDiskPhase(x: x, y: y)))
             }
             

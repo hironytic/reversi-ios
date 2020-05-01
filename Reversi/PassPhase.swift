@@ -37,7 +37,7 @@ public struct PassPhase: Phase {
         case .passDismissed(let requestId):
             if let request = state.passNotificationRequest, request.requestId == requestId {
                 // パス表示を消したら次のターンへ
-                state.thunks.append { (dispatcher, _) in
+                state.loop { (dispatcher, _) in
                     dispatcher.dispatch(.changePhase(to: NextTurnPhase()))
                 }
             }

@@ -22,7 +22,7 @@ public struct WaitForPlayerPhase: Phase {
         
         switch action {
         case .boardCellSelected(x: let x, y: let y):
-            state.thunks.append { (dispatcher, _) in
+            state.loop { (dispatcher, _) in
                 dispatcher.dispatch(.changePhase(to: PlaceDiskPhase(x: x, y: y)))
             }
             

@@ -31,7 +31,7 @@ public struct InitialPhase: Phase {
         
         switch action {
         case .start:
-            state.thunks.append { (dispatcher, state) in
+            state.loop { (dispatcher, state) in
                 dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
             }
         default:

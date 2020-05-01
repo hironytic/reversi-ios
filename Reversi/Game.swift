@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 /// アクションに応じて状態を変更する `reduce` メソッドを持ちます。
-/// このプロトコルは基本的に値型で準拠することを想定しています。
+/// このプロトコルは値型で準拠することを想定しています。
 /// `reduce` メソッドでは、自身の型で保持する値であっても、
 /// 変更したStateを返す以外の方法で状態を変更してはいけません。
 /// また、このメソッド内では非同期処理の呼び出しなど
@@ -104,9 +104,9 @@ public class Game: Dispatcher {
         var state = stateHolder.value
         state = reducer.reduce(state: state, action: action)
 
-        // サンクは取り出しておく
-        let thunks = state.thunks
-        state.thunks = []
+        // ループ用サンクは取り出しておく
+        let thunks = state._loops
+        state._loops = []
         
         outputLog("Phase: \(state.phase)")
         stateHolder.value = state

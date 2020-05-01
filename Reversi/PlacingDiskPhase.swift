@@ -49,7 +49,7 @@ public struct PlacingDiskPhase: Phase {
         case .boardUpdated(let requestId):
             if let request = state.boardUpdateRequest, request.requestId == requestId {
                 // 残りの変更の反映を依頼するフェーズへ
-                state.thunks.append { (dispatcher, _) in
+                state.loop { (dispatcher, _) in
                     dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: self.cellChanges[self.cellChanges.startIndex.advanced(by: 1)...])))
                 }
             }

@@ -16,33 +16,37 @@ public struct PlacingDiskPhase: Phase {
         return "\(kind.description)(\(cellChanges.count) change(s) left)"
     }
 
-    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            // 1つ目を取り出して、ゲーム外部に更新を依頼
-            if let change = self.cellChanges.first {
-                dispatcher.dispatch(.requestUpdateBoard(request: DetailedRequest(.withAnimation(change))))
-            } else {
-                // 反映するものがなくなったら、次のターンへ
-                dispatcher.dispatch(.changePhase(to: NextTurnPhase()))
+            if let phase = thisPhase(of: state) {
+                // 1つ目を取り出して、ゲーム外部に更新を依頼
+                if let change = phase.cellChanges.first {
+                    dispatcher.dispatch(.requestUpdateBoard(request: DetailedRequest(.withAnimation(change))))
+                } else {
+                    // 反映するものがなくなったら、次のターンへ
+                    dispatcher.dispatch(.changePhase(to: NextTurnPhase()))
+                }
             }
         }
     }
     
-    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
             dispatcher.dispatch(.requestUpdateBoard(request: nil))
         }
     }
     
-    public func reduce(state: State, action: Action) -> State {
+    public static func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {
         case .boardUpdated(let requestId):
             if let request = state.boardUpdateRequest, request.requestId == requestId {
                 // 残りの変更の反映を依頼するフェーズへ
-                state.loop { (dispatcher, _) in
-                    dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: self.cellChanges[self.cellChanges.startIndex.advanced(by: 1)...])))
+                state.loop { (dispatcher, state) in
+                    if let cellChanges = thisPhase(of: state)?.cellChanges {
+                        dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[cellChanges.startIndex.advanced(by: 1)...])))
+                    }
                 }
             }
             

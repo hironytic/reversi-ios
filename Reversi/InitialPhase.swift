@@ -7,14 +7,14 @@ extension PhaseKind {
 public struct InitialPhase: Phase {
     public var kind: PhaseKind { .initial }
 
-    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? {
         // ゲームの準備が整って始まったところでいろいろ初期化する
         return { (dispatcher, _) in
             dispatcher.dispatch(.initializeStateWhenStarted())
         }
     }
     
-    public func reduce(state: State, action: Action) -> State {
+    public static func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

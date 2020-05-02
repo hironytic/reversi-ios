@@ -18,20 +18,22 @@ public struct PlaceDiskPhase: Phase {
         return "\(kind.description)(x=\(x), y=\(y))"
     }
 
-    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            // ボードにディスクを置く。その変更分は `PlacingDiskPhase` で反映。
-            if let turn = state.turn {
-                dispatcher.dispatch(.placeDisk(disk: turn, x: self.x, y: self.y))
-            } else {
+            guard let turn = state.turn else {
                 // ゲームが終了しているのにPlaceDiskPhaseに来たということなのでおかしい
                 assertionFailure()
+                return
             }
 
+            // ボードにディスクを置く。その変更分は `PlacingDiskPhase` で反映。
+            if let phase = thisPhase(of: state) {
+                dispatcher.dispatch(.placeDisk(disk: turn, x: phase.x, y: phase.y))
+            }
         }
     }
     
-    public func reduce(state: State, action: Action) -> State {
+    public static func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

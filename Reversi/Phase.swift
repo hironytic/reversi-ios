@@ -22,22 +22,26 @@ public protocol Phase: Reducer, Hashable, CustomStringConvertible {
     /// 必要に応じてサンクを返すことができます。
     /// - Parameters:
     ///   - previousPhase: 以前のフェーズが渡されます。
-    func onEnter(previousPhase: AnyPhase) -> Thunk?
+    static func onEnter(previousPhase: AnyPhase) -> Thunk?
     
     /// このフェーズから別のフェーズに遷移するときに呼ばれます。
     /// 必要に応じてサンクを返すことができます。
     /// - Parameters:
     ///   - state: 現在の状態です。
     ///   - nextPhase: 次のフェーズが渡されます。
-    func onExit(nextPhase: AnyPhase) -> Thunk?
+    static func onExit(nextPhase: AnyPhase) -> Thunk?
 }
 
 extension Phase {
-    public func onEnter(previousPhase: AnyPhase) -> Thunk? { nil }
-    public func onExit(nextPhase: AnyPhase) -> Thunk? { nil }
-    public func reduce(state: State, action: Action) -> State { state }
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? { nil }
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? { nil }
+    public static func reduce(state: State, action: Action) -> State { state }
     public var description: String {
         return kind.description
+    }
+    
+    public static func thisPhase(of state: State) -> Self? {
+        return state.phase.base as? Self
     }
 }
 
@@ -47,12 +51,12 @@ public struct AnyPhase: Phase, CustomStringConvertible {
         func isEqual(to other: AnyPhaseBox) -> Bool { fatalError() }
         func hash(into hasher: inout Hasher) { fatalError() }
         
-        func reduce(state: State, action: Action) -> State { fatalError() }
+        class func reduce(state: State, action: Action) -> State { fatalError() }
         
         var kind: PhaseKind { fatalError() }
         
-        func onEnter(previousPhase: AnyPhase) -> Thunk? { fatalError() }
-        func onExit(nextPhase: AnyPhase) -> Thunk? { fatalError() }
+        class func onEnter(previousPhase: AnyPhase) -> Thunk? { fatalError() }
+        class func onExit(nextPhase: AnyPhase) -> Thunk? { fatalError() }
         
         var description: String { fatalError() }
         var typelessBase: Any { fatalError() }
@@ -76,20 +80,20 @@ public struct AnyPhase: Phase, CustomStringConvertible {
             base.hash(into: &hasher)
         }
         
-        override func reduce(state: State, action: Action) -> State {
-            return base.reduce(state: state, action: action)
+        override class func reduce(state: State, action: Action) -> State {
+            return P.reduce(state: state, action: action)
         }
         
         override var kind: PhaseKind {
             return base.kind
         }
 
-        override func onEnter(previousPhase: AnyPhase) -> Thunk? {
-            return base.onEnter(previousPhase: previousPhase)
+        override class func onEnter(previousPhase: AnyPhase) -> Thunk? {
+            return P.onEnter(previousPhase: previousPhase)
         }
         
-        override func onExit(nextPhase: AnyPhase) -> Thunk? {
-            return base.onExit(nextPhase: nextPhase)
+        override class func onExit(nextPhase: AnyPhase) -> Thunk? {
+            return P.onExit(nextPhase: nextPhase)
         }
         
         override var description: String {
@@ -119,18 +123,34 @@ public struct AnyPhase: Phase, CustomStringConvertible {
         box.hash(into: &hasher)
     }
 
-    public func reduce(state: State, action: Action) -> State {
-        return box.reduce(state: state, action: action)
+    public static func reduce(state: State, action: Action) -> State {
+        preconditionFailure("This function should not be called.")
     }
     
     public var kind: PhaseKind { box.kind }
 
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
+        preconditionFailure("This function should not be called.")
+    }
+    
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? {
+        preconditionFailure("This function should not be called.")
+    }
+    
+    public static var reduce: Reducer {
+        preconditionFailure("This property should not be called.")
+    }
+    
     public func onEnter(previousPhase: AnyPhase) -> Thunk? {
-        return box.onEnter(previousPhase: previousPhase)
+        return type(of: box).onEnter(previousPhase: previousPhase)
     }
     
     public func onExit(nextPhase: AnyPhase) -> Thunk? {
-        return box.onExit(nextPhase: nextPhase)
+        return type(of: box).onExit(nextPhase: nextPhase)
+    }
+    
+    public func reduce(state: State, action: Action) -> State {
+        return type(of: box).reduce(state: state, action: action)
     }
     
     public var description: String {

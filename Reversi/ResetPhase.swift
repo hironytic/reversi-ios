@@ -7,18 +7,18 @@ extension PhaseKind {
 public struct ResetPhase: Phase {
     public var kind: PhaseKind { .reset }
     
-    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
             dispatcher.dispatch(.doReset())
         }
     }
     
-    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? {
         // TODO: セーブ
         return nil
     }
     
-    public func reduce(state: State, action: Action) -> State {
+    public static func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

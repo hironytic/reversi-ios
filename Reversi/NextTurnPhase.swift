@@ -7,18 +7,18 @@ extension PhaseKind {
 public struct NextTurnPhase: Phase {
     public var kind: PhaseKind { .nextTurn }
     
-    public func onEnter(previousPhase: AnyPhase) -> Thunk? {
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
             dispatcher.dispatch(.nextTurn())
         }
     }
     
-    public func onExit(nextPhase: AnyPhase) -> Thunk? {
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? {
         // TODO: セーブ
         return nil
     }
     
-    public func reduce(state: State, action: Action) -> State {
+    public static func reduce(state: State, action: Action) -> State {
         var state = state
         
         switch action {

@@ -2,10 +2,8 @@ import Foundation
 import Combine
 
 /// アクションに応じて状態を変更する `reduce` メソッドを持ちます。
-/// このプロトコルは値型で準拠することを想定しています。
-/// `reduce` メソッドでは、自身の型で保持する値であっても、
-/// 変更したStateを返す以外の方法で状態を変更してはいけません。
-/// また、このメソッド内では非同期処理の呼び出しなど
+/// `reduce` メソッドでは、変更したStateを返す以外の方法で
+/// 状態を変更してはいけません。また、非同期処理の呼び出しなど
 /// 副作用のあることを行ってはいけません。
 public protocol Reducer {
     /// アクションに応じて状態を変更します。
@@ -13,7 +11,7 @@ public protocol Reducer {
     ///   - state: 変更前の状態です。
     ///   - action: 状態変更を要求するアクションです。
     /// - Returns: 変更後の状態を返します。
-    func reduce(state: State, action: Action) -> State
+    static func reduce(state: State, action: Action) -> State
 }
 
 /// アクションをディスパッチするメソッドを持ちます。
@@ -40,14 +38,14 @@ public class Game: Dispatcher {
     public let statePublisher: AnyPublisher<State, Never>
 
     /// 状態を変更するものです。
-    public let reducer: Reducer
+    public let reducer: Reducer.Type
 
     /// 新規ゲームの開始状態で初期化します。
     public convenience init() {
         let state = State(board: Board(),
                           turn: .dark,
                           playerModes: [.manual, .manual])
-        self.init(state: state, reducer: MainReducer())
+        self.init(state: state, reducer: MainReducer.self)
     }
 
     /// 保存した状態で初期化します。
@@ -59,7 +57,7 @@ public class Game: Dispatcher {
     }
 
     /// 指定された状態で初期化します。
-    public init(state: State, reducer: Reducer = MainReducer()) {
+    public init(state: State, reducer: Reducer.Type = MainReducer.self) {
         self.reducer = reducer
         stateHolder = CurrentValueSubject(state)
         statePublisher = stateHolder
@@ -107,10 +105,8 @@ public class Game: Dispatcher {
     }
 }
 
-public struct MainReducer: Reducer {
-    public init() { }
-    
-    public func reduce(state: State, action: Action) -> State {
+public enum MainReducer: Reducer {
+    public static func reduce(state: State, action: Action) -> State {
         var state = state
         let currentPhase = state.phase
         var phaseChanged = false
@@ -153,7 +149,7 @@ public struct MainReducer: Reducer {
                     // 実行することになったらリセット
                     state.phase = AnyPhase(ResetPhase())
                 }
-            }            
+            }
             
         default:
             break

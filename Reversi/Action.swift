@@ -65,15 +65,15 @@ extension Actionish {
                 
                 // 前のフェーズのonExitを呼び出す
                 if let thunk = state.phase.onExit(nextPhase: phase) {
-                    dispatcher.dispatch(thunk: thunk)
+                    dispatcher.dispatch(.thunk(thunk))
                 }
                 
                 // フェーズを変更する
-                dispatcher.dispatch(action: .changePhase(nextPhase: phase))
+                dispatcher.dispatch(.action(.changePhase(nextPhase: phase)))
                 
                 // 次のフェーズのonEnterを呼び出す
                 if let thunk = phase.onEnter(previousPhase: prevPhase) {
-                    dispatcher.dispatch(thunk: thunk)
+                    dispatcher.dispatch(.thunk(thunk))
                 }
             }
         })

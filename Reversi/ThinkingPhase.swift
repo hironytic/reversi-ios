@@ -24,12 +24,12 @@ public struct ThinkingPhase: Phase {
                     // 実はもう打つ手は決まったのだが、もったいぶって（？）
                     // 時間を置いてから打つ
                     DispatchQueue.main.asyncAfter(deadline: .now() + ThinkingPhase.thinkingDuration) {
-                        dispatcher.dispatch(thunk: { (dispatcher, state) in
+                        dispatcher.dispatch(.thunk({ (dispatcher, state) in
                             // 時間をつぶして戻ってきてもまだこのフェーズにいるときだけ打つ。
                             if let phase = state.phase.base as? ThinkingPhase, phase.thinkingId == self.thinkingId {
                                 dispatcher.dispatch(.boardCellSelected(x: x, y: y))
                             }
-                        })
+                        }))
                     }
                 } else {
                     // 打つところがないのにThinkingPhaseになったということなのでおかしい

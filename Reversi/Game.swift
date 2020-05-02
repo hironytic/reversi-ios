@@ -21,26 +21,6 @@ public protocol Dispatcher {
     /// アクションらしきものをディスパッチします。
     /// - Parameter actionish: アクションらしきもの
     func dispatch(_ actionish: Actionish)
-    
-    /// アクションをディスパッチします。
-    /// - Parameter action: アクション
-    func dispatch(action: Action)
-    
-    /// サンクを用いてアクションをディスパッチします。
-    /// - Parameter thunk: サンク
-    func dispatch(thunk: Thunk)
-}
-
-extension Dispatcher {
-    public func dispatch(_ actionish: Actionish) {
-        switch actionish {
-        case .action(let action):
-            dispatch(action: action)
-            
-        case .thunk(let thunk):
-            dispatch(thunk: thunk)
-        }
-    }
 }
 
 /// アクションのディスパッチを遅延実行させるための関数です。
@@ -90,6 +70,18 @@ public class Game: Dispatcher {
 //        print(line())
     }
     
+    /// アクションらしきものをディスパッチします。
+    /// - Parameter actionish: アクションらしきもの
+    public func dispatch(_ actionish: Actionish) {
+        switch actionish {
+        case .action(let action):
+            dispatch(action: action)
+            
+        case .thunk(let thunk):
+            dispatch(thunk: thunk)
+        }
+    }
+
     /// アクションをディスパッチします。
     /// - Parameter action: ディスパッチ対象のアクション
     public func dispatch(action: Action) {

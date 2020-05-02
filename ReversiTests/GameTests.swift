@@ -44,7 +44,7 @@ class GameTests: XCTestCase {
     }
     
     func testGameStartToNextTurn() {
-        let game = Game()
+        let game = Game(middlewares: [Logger.self])
 
         let stateSubscriber = EventuallyFulfill<State, Never>()
         game.statePublisher.subscribe(stateSubscriber)
@@ -156,7 +156,7 @@ class GameTests: XCTestCase {
         ThinkingPhase.thinkingDuration = 0.5
         
         let state = State(board: Board(), turn: .dark, playerModes: [.computer, .computer])
-        let game = Game(state: state)
+        let game = Game(state: state, middlewares: [Logger.self])
 
         let stateSubscriber = EventuallyFulfill<State, Never>()
         let publisher = game

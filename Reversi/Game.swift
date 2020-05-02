@@ -26,6 +26,11 @@ public protocol Dispatcher {
 /// 動作を行っても構いません。
 public typealias Thunk = (Dispatcher, State) -> Void
 
+/// ディスパッチ処理を必要に応じて拡張するためのものです。
+public protocol Middleware {
+    static func extend(game: Game, next: Dispatcher) -> Dispatcher
+}
+
 public enum GameError: Error {
     case restore(data: String)
 }
@@ -34,17 +39,31 @@ public enum GameError: Error {
 public class Game: Dispatcher {
     private let store: Store
 
-    /// 現在の状態の発行元
+    /// 現在の状態
+    public var state: State {
+        store.stateHolder.value
+    }
+    
+    /// 現在の状態が変更されたときのイベント発行者
     public let statePublisher: AnyPublisher<State, Never>
 
-    /// 新規ゲームの開始状態で初期化します。
-    public convenience init() {
-        let state = State(board: Board(),
-                          turn: .dark,
-                          playerModes: [.manual, .manual])
-        self.init(state: state, reducer: MainReducer.self)
+    /// 状態を変更するもの
+    public lazy var dispatcher: Dispatcher = { () -> Dispatcher in fatalError() }()
+    
+    /// 指定された状態で初期化します。
+    public init(state: State = State(board: Board(),
+                                     turn: .dark,
+                                     playerModes: [.manual, .manual]),
+                reducer: Reducer.Type = MainReducer.self,
+                middlewares: [Middleware.Type] = []) {
+        store = Store(initialState: state, reducer: reducer)
+        statePublisher = store.stateHolder
+            .eraseToAnyPublisher()
+        dispatcher = middlewares.reversed().reduce(store) { (next, middleware) in
+            return middleware.extend(game: self, next: next)
+        }
     }
-
+    
     /// 保存した状態で初期化します。
     /// - Parameter data: 保存状態のテキスト
     /// - Throws: 保存状態を復元できなければ `GameError.restore` を `throw` します。
@@ -52,18 +71,11 @@ public class Game: Dispatcher {
         // TODO:
         self.init()
     }
-
-    /// 指定された状態で初期化します。
-    public init(state: State, reducer: Reducer.Type = MainReducer.self) {
-        store = Store(initialState: state, reducer: reducer)
-        statePublisher = store.stateHolder
-            .eraseToAnyPublisher()
-    }
     
     /// アクションらしきものをディスパッチします。
     /// - Parameter actionish: アクションらしきもの
     public func dispatch(_ actionish: Actionish) {
-        store.dispatch(actionish)
+        dispatcher.dispatch(actionish)
     }
 }
 
@@ -79,10 +91,6 @@ public class Store: Dispatcher {
         self.reducer = reducer
     }
 
-    private func outputLog(_ line: @autoclosure () -> String) {
-//        print(line())
-    }
-    
     /// アクションらしきものをディスパッチします。
     /// - Parameter actionish: アクションらしきもの
     public func dispatch(_ actionish: Actionish) {
@@ -105,7 +113,6 @@ public class Store: Dispatcher {
         let thunks = state._loops
         state._loops = []
         
-        outputLog("(Phase: \(stateHolder.value.phase), Action: \(action)) -> Phase: \(state.phase)")
         stateHolder.value = state
         
         for thunk in thunks {
@@ -117,6 +124,27 @@ public class Store: Dispatcher {
     /// - Parameter thunk: サンク
     public func dispatch(thunk: Thunk) {
         thunk(self, stateHolder.value)
+    }
+}
+
+/// フェーズとアクションに関するログ出力を行うミドルウェアです。
+public class Logger: Middleware, Dispatcher {
+    private let game: Game
+    private let next: Dispatcher
+    
+    public init(game: Game, next: Dispatcher) {
+        self.game = game
+        self.next = next
+    }
+    
+    public static func extend(game: Game, next: Dispatcher) -> Dispatcher {
+        return Logger(game: game, next: next)
+    }
+
+    public func dispatch(_ actionish: Actionish) {
+        print("(Phase: \(game.state.phase),\n Action: \(actionish))")
+        next.dispatch(actionish)
+        print("  --> Phase: \(game.state.phase)")
     }
 }
 

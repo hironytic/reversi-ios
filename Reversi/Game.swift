@@ -54,9 +54,6 @@ public enum GameError: Error {
 
 /// ゲームの状態を保持し、アクションをディスパッチすることでゲームを進めます。
 public class Game: Dispatcher {
-    /// 現在進行中のゲームのインスタンス
-    public static var current: Game?
-    
     private let stateHolder: CurrentValueSubject<State, Never>
 
     /// 現在の状態の発行元
@@ -89,11 +86,6 @@ public class Game: Dispatcher {
             .eraseToAnyPublisher()
     }
 
-    /// このオブジェクトを現在進行中のGameにします。
-    public func makeCurrent() {
-        Game.current = self
-    }
-    
     private func outputLog(_ line: @autoclosure () -> String) {
 //        print(line())
     }

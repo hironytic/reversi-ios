@@ -45,7 +45,6 @@ class GameTests: XCTestCase {
     
     func testGameStartToNextTurn() {
         let game = Game()
-        game.makeCurrent()
 
         let stateSubscriber = EventuallyFulfill<State, Never>()
         game.statePublisher.subscribe(stateSubscriber)
@@ -158,7 +157,6 @@ class GameTests: XCTestCase {
         
         let state = State(board: Board(), turn: .dark, playerModes: [.computer, .computer])
         let game = Game(state: state)
-        game.makeCurrent()
 
         let stateSubscriber = EventuallyFulfill<State, Never>()
         let publisher = game

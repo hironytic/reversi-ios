@@ -32,13 +32,10 @@ public enum GameError: Error {
 
 /// ゲームの状態を保持し、アクションをディスパッチすることでゲームを進めます。
 public class Game: Dispatcher {
-    private let stateHolder: CurrentValueSubject<State, Never>
+    private let store: Store
 
     /// 現在の状態の発行元
     public let statePublisher: AnyPublisher<State, Never>
-
-    /// 状態を変更するものです。
-    public let reducer: Reducer.Type
 
     /// 新規ゲームの開始状態で初期化します。
     public convenience init() {
@@ -58,10 +55,28 @@ public class Game: Dispatcher {
 
     /// 指定された状態で初期化します。
     public init(state: State, reducer: Reducer.Type = MainReducer.self) {
-        self.reducer = reducer
-        stateHolder = CurrentValueSubject(state)
-        statePublisher = stateHolder
+        store = Store(initialState: state, reducer: reducer)
+        statePublisher = store.stateHolder
             .eraseToAnyPublisher()
+    }
+    
+    /// アクションらしきものをディスパッチします。
+    /// - Parameter actionish: アクションらしきもの
+    public func dispatch(_ actionish: Actionish) {
+        store.dispatch(actionish)
+    }
+}
+
+public class Store: Dispatcher {
+    /// 状態を保持するものです。
+    public let stateHolder: CurrentValueSubject<State, Never>
+    
+    /// 状態を変更するものです。
+    private let reducer: Reducer.Type
+
+    public init(initialState: State, reducer: Reducer.Type) {
+        stateHolder = CurrentValueSubject(initialState)
+        self.reducer = reducer
     }
 
     private func outputLog(_ line: @autoclosure () -> String) {

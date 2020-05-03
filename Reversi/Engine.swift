@@ -31,6 +31,9 @@ public protocol Middleware {
     static func extend(game: Game, next: Dispatcher) -> Dispatcher
 }
 
+/// 実際に状態を保持し、ディスパッチャーとなる基本のストア実装です。
+/// `Game` はこれを内部的に持ちますが、 `Game` のディスパッチャーは
+/// ミドルウェアを挟んだものになっていて、 `Store` そのものではありません。
 public class Store: Dispatcher {
     /// 状態を保持するものです。
     public let stateHolder: CurrentValueSubject<State, Never>

@@ -21,15 +21,15 @@ public struct State {
     public var diskCount: [Int] = Disk.sides.map { _ in 0 }
 
     /// リバーシ盤の表示を更新する依頼が出ていれば値が設定されています。
-    /// 依頼に答えたら `Action.boardUpdated` をディスパッチしてください。
+    /// 依頼に答えたら `Actionish.boardUpdated()` の結果をディスパッチしてください。
     public var boardUpdateRequest: DetailedRequest<BoardUpdate>?
 
     /// 「パス」を通知する依頼が出ていれば値が設定されています。
-    /// 依頼に答えて通知が閉じられたら `Action.passDismissed` をディスパッチしてください。
+    /// 依頼に答えて通知が閉じられたら `Actionish.passDismissed()` の結果をディスパッチしてください。
     public var passNotificationRequest: Request?
     
     /// リセットの確認を表示する依頼が出ていれば値が設定されています。
-    /// 依頼に答えて確認結果が得られたら `Action.resetConfirmed` をディスパッチしてください。
+    /// 依頼に答えて確認結果が得られたら `Actionish.resetConfirmed()` の結果をディスパッチしてください。
     public var resetConfirmationRequst: Request?    
     
     public init(board: Board, turn: Disk?, playerModes: [PlayerMode]) {

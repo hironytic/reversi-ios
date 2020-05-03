@@ -67,7 +67,7 @@ public enum GameReducer: Reducer {
             for disk in Disk.sides {
                 state.diskCount[disk] = state.board.countDisks(of: disk)
             }
-            state.boardUpdateRequest = nil
+            state.boardUpdateRequest = wholeCellUpdateRequest(board: state.board)
             state.passNotificationRequest = nil
             state.resetConfirmationRequst = nil
         
@@ -105,5 +105,19 @@ public enum GameReducer: Reducer {
         }
         
         return state
+    }
+    
+    /// リバーシ盤の状態に合うように全セルの更新依頼を生成します。
+    /// - Parameter board: リバーシ盤
+    /// - Returns: 生成した更新依頼を返します。
+    private static func wholeCellUpdateRequest(board: Board) -> DetailedRequest<BoardUpdate> {
+        let cellChanges: [Board.CellChange] =
+            (0 ..< board.height).flatMap { y in
+                (0 ..< board.width).map { x in
+                    Board.CellChange(x: x, y: y, disk: board.diskAt(x: x, y: y))
+                }
+            }
+
+        return DetailedRequest(.withoutAnimation(cellChanges))
     }
 }

@@ -5,7 +5,7 @@ class ViewModel {
     private let game: Game
     
     init() {
-        game = Game()
+        game = Game(middlewares: [Logger.self])
         
         let gameState = game.statePublisher
             .share()
@@ -87,13 +87,13 @@ class ViewModel {
     let messageDiskViewDisk: AnyPublisher<Disk?, Never>
  
     /// メッセージ表示の中のテキスト
-    let messageLabelText: AnyPublisher<String, Never>
+    let messageLabelText: AnyPublisher<String?, Never>
     
     /// プレイヤーモードの選択値
     let playerControlSelectedIndices: [AnyPublisher<Int, Never>]
 
     /// ディスクカウント
-    let countLabelTexts: [AnyPublisher<String, Never>]
+    let countLabelTexts: [AnyPublisher<String?, Never>]
     
     /// ぐるぐる
     let playerActivityIndicatorAnimateds: [AnyPublisher<Bool, Never>]

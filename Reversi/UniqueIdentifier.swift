@@ -15,7 +15,7 @@ public struct UniqueIdentifier: Hashable, CustomStringConvertible {
     }
     
     public var description: String {
-        return "ID:\(rawValue)"
+        return "ID=\(rawValue)"
     }
     
     public static let invalid = UniqueIdentifier(rawValue: 0)

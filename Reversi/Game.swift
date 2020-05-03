@@ -7,7 +7,7 @@ public enum GameError: Error {
 
 /// ゲームの状態を保持し、アクションをディスパッチすることでゲームを進めます。
 public class Game: Dispatcher {
-    private let store: Store
+    private lazy var store: Store = { () -> Store in fatalError() }()
 
     /// 現在の状態
     public var state: State {
@@ -15,7 +15,7 @@ public class Game: Dispatcher {
     }
     
     /// 現在の状態が変更されたときのイベント発行者
-    public let statePublisher: AnyPublisher<State, Never>
+    public lazy var statePublisher: AnyPublisher<State, Never> = { () -> AnyPublisher<State, Never> in fatalError() }()
 
     /// 状態を変更するもの
     public lazy var dispatcher: Dispatcher = { () -> Dispatcher in fatalError() }()
@@ -26,7 +26,7 @@ public class Game: Dispatcher {
                                      playerModes: [.manual, .manual]),
                 reducer: Reducer.Type = GameReducer.self,
                 middlewares: [Middleware.Type] = []) {
-        store = Store(initialState: state, reducer: reducer)
+        store = Store(rootDispatcher: self, initialState: state, reducer: reducer)
         statePublisher = store.stateHolder
             .eraseToAnyPublisher()
         dispatcher = middlewares.reversed().reduce(store) { (next, middleware) in

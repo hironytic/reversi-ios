@@ -53,13 +53,17 @@ public struct State {
 }
 
 /// ゲーム外部に出す依頼
-public struct Request: Hashable {
+public struct Request: Hashable, CustomStringConvertible {
     /// 依頼の番号
     public let requestId = UniqueIdentifier()
+    
+    public var description: String {
+        return "Request(requestId: \(requestId))"
+    }
 }
 
 /// ゲーム外部に出す依頼（詳細付き）
-public struct DetailedRequest<D: Hashable>: Hashable {
+public struct DetailedRequest<D: Hashable>: Hashable, CustomStringConvertible {
     /// 依頼の番号
     public let requestId = UniqueIdentifier()
     
@@ -69,14 +73,27 @@ public struct DetailedRequest<D: Hashable>: Hashable {
     public init(_ detail: D) {
         self.detail = detail
     }
+    
+    public var description: String {
+        return "Request(requestId: \(requestId), detail: \(detail))"
+    }
 }
 
 /// リバーシ盤の表示更新の依頼内容
-public enum BoardUpdate: Hashable {
+public enum BoardUpdate: Hashable, CustomStringConvertible {
     /// 「1つのセルをアニメーション付きで更新してください」という依頼
     case withAnimation(Board.CellChange)
     
     /// 「一連のセルをアニメーションなしで更新してください」という依頼
     case withoutAnimation([Board.CellChange])
+    
+    public var description: String {
+        switch self {
+        case .withAnimation(let change):
+            return "withAnimation(\(change))"
+        
+        case .withoutAnimation(let changes):
+            return "withoutAnimation(\(changes))"
+        }
+    }
 }
-

@@ -35,13 +35,17 @@ public protocol Middleware {
 /// `Game` はこれを内部的に持ちますが、 `Game` のディスパッチャーは
 /// ミドルウェアを挟んだものになっていて、 `Store` そのものではありません。
 public class Store: Dispatcher {
+    /// 最上位のDispatcherです。
+    private let rootDispatcher: Dispatcher
+    
     /// 状態を保持するものです。
     public let stateHolder: CurrentValueSubject<State, Never>
     
     /// 状態を変更するものです。
     private let reducer: Reducer.Type
 
-    public init(initialState: State, reducer: Reducer.Type) {
+    public init(rootDispatcher: Dispatcher, initialState: State, reducer: Reducer.Type) {
+        self.rootDispatcher = rootDispatcher
         stateHolder = CurrentValueSubject(initialState)
         self.reducer = reducer
     }
@@ -69,15 +73,20 @@ public class Store: Dispatcher {
         state._loops = []
         
         stateHolder.value = state
-        
-        for thunk in thunks {
-            dispatch(thunk: thunk)
+    
+        if !thunks.isEmpty {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                for thunk in thunks {
+                    self.rootDispatcher.dispatch(.thunk(thunk))
+                }
+            }
         }
     }
 
     /// サンクを用いてアクションをディスパッチします。
     /// - Parameter thunk: サンク
     public func dispatch(thunk: Thunk) {
-        thunk(self, stateHolder.value)
+        thunk(rootDispatcher, stateHolder.value)
     }
 }

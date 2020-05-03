@@ -252,7 +252,7 @@ class GameTests: XCTestCase {
         stateSubscriber1.store(in: &cancellables)
         
         // また、次のフェーズは WaitForPlayer になる
-        let expectPhaseToBeWaitForPlayer = expectation(description: "Phase transits to WaitForPlayer")
+        let expectPhaseToBeWaitForPlayer = expectation(description: "Phase transits to 'WaitForPlayer'")
         let stateSubscriber2 = EventuallyFulfill<State, Never>(expectPhaseToBeWaitForPlayer, inputChecker: { state in
             return state.phase.kind == .waitForPlayer
         })
@@ -261,5 +261,84 @@ class GameTests: XCTestCase {
         
         game.dispatch(.start())
         wait(for: [expectStateToBeInitialized, expectPhaseToBeWaitForPlayer], timeout: 3.0)
+    }
+    
+    func testWaitForPlayerPhase1() throws {
+        let board = try Board(restoringFromText: """
+            o-------
+            -o-o----
+            --oo-o--
+            --xoxox-
+            ---xox--
+            ---oxxx-
+            ---o-x--
+            --o-----
+            """)
+        var state = State(board: board, turn: .dark, playerModes: [.computer, .manual])
+        state.phase = AnyPhase(WaitForPlayerPhase())
+        
+        let game = Game(state: state, middlewares: [Logger.self])
+        let gameState = game.statePublisher.share()
+
+        // 黒のターンだが、黒はcomputerなのでThinkingPhaseへ遷移する
+        let expectPhaseToBeThinking = expectation(description: "Phase transits to 'Thinking'")
+        let stateSubscriber = EventuallyFulfill<State, Never>(expectPhaseToBeThinking, inputChecker: { state in
+            return state.phase.kind == .thinking
+        })
+        gameState.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+        
+        game.dispatch(.thunk({ (dispatcher, _) in
+            let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase()))
+            XCTAssertNotNil(onEnter)
+            onEnter.map { dispatcher.dispatch(.thunk($0)) }
+        }))
+        wait(for: [expectPhaseToBeThinking], timeout: 3.0)
+    }
+    
+    func testWaitForPlayerPhase2() throws {
+        let board = try Board(restoringFromText: """
+            o-------
+            -o-o----
+            --oo-o--
+            --xoxox-
+            ---xox--
+            ---oxxx-
+            ---o-x--
+            --o-----
+            """)
+        var state = State(board: board, turn: .light, playerModes: [.computer, .manual])
+        state.phase = AnyPhase(WaitForPlayerPhase())
+        
+        let game = Game(state: state, middlewares: [Logger.self])
+        let gameState = game.statePublisher.share()
+
+        // 白のターンだが、白はmanualなのでそのまま待っていてもWaitForPlayerにとどまる
+        let expectPhaseNotToTransit = expectation(description: "Phase transits to nothing but 'WaitForPlayer'")
+        expectPhaseNotToTransit.isInverted = true
+        let stateSubscriber = EventuallyFulfill<State, Never>(expectPhaseNotToTransit, inputChecker: { state in
+            return state.phase.kind != .waitForPlayer
+        })
+        gameState.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+        
+        game.dispatch(.thunk({ (dispatcher, _) in
+            let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase()))
+            XCTAssertNotNil(onEnter)
+            onEnter.map { dispatcher.dispatch(.thunk($0)) }
+        }))
+        wait(for: [expectPhaseNotToTransit], timeout: 1.0)
+        
+        // ボードのセルをタップすると、フェーズがPlaceDiskに移る
+        let expectPhaseToBePlaceDisk = expectation(description: "Phase transits to 'PlaceDisk'")
+        stateSubscriber.reset(expectPhaseToBePlaceDisk, inputChecker: { state in
+            guard let phase = PlaceDiskPhase.thisPhase(of: state) else { return false }
+            guard phase.x == 1 else { return false }
+            guard phase.y == 3 else { return false }
+            
+            return true
+        })
+        game.dispatch(.boardCellSelected(x: 1, y: 3))
+        wait(for: [expectPhaseToBePlaceDisk], timeout: 3.0)
     }
 }

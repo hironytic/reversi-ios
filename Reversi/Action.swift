@@ -7,6 +7,15 @@ public enum Actionish {
     
     /// アクションを遅延ディスパッチするサンクです。
     case thunk(Thunk)
+
+    /// 実際のアクションなら `true` になります。
+    public var isAction: Bool {
+        if case .action(_) = self {
+            return true
+        } else {
+            return false
+        }
+    }
 }
 
 // 外部からディスパッチしてもらうもの
@@ -116,7 +125,7 @@ extension Actionish {
 }
 
 /// ゲームの状態を進めるためのアクションです。
-public enum Action {
+public enum Action: CustomStringConvertible {
     /// ゲームを開始するときにディスパッチするアクションです。
     case start
     
@@ -161,4 +170,45 @@ public enum Action {
     
     /// リセットを実行するアクションです。
     case doReset
+    
+    public var description: String {
+        switch self {
+        case .start:
+            return "start"
+        case .boardCellSelected(x: let x, y: let y):
+            return "boardCellSelected(x: \(x), y: \(y))"
+        case .playerModeChanged(player: let player, mode: let mode):
+            return "playerModeChanged(player: \(player), mode: \(mode))"
+        case .reset:
+            return "reset"
+        case .resetConfirmed(requestId: let requestId, execute: let execute):
+            return "resetConfirmed(requestId: \(requestId), execute: \(execute))"
+        case .passDismissed(requestId: let requestId):
+            return "passDismissed(requestId: \(requestId))"
+        case .boardUpdated(requestId: let requestId):
+            return "boardUpdated(requestId: \(requestId))"
+        case .changePhase(nextPhase: let nextPhase):
+            return "changePhase(nextPhase: \(nextPhase))"
+        case .initializeStateWhenStarted:
+            return "initializeStateWhenStarted"
+        case .setThinking(let thinking):
+            return "setThinking(\(thinking))"
+        case .placeDisk(disk: let disk, x: let x, y: let y):
+            return "placeDisk(disk: \(disk), x: \(x), y: \(y))"
+        case .requestUpdateBoard(request: let request):
+            let requestText: String
+            if let request = request {
+                requestText = "\(request)"
+            } else {
+                requestText = "nil"
+            }
+            return "requestUpdateBoard(request: \(requestText))"
+        case .requestPassNotification(let doRequest):
+            return "requestPassNotification(\(doRequest))"
+        case .nextTurn:
+            return "nextTurn"
+        case .doReset:
+            return "doReset"
+        }
+    }
 }

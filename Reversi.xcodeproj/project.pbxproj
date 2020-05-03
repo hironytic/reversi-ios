@@ -8,7 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		50182BFA2455C68600BDC2B6 /* BoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50182BF92455C68600BDC2B6 /* BoardTests.swift */; };
+		50182BFC24584C4500BDC2B6 /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50182BFB24584C4500BDC2B6 /* Game.swift */; };
+		50182BFE2458518B00BDC2B6 /* PlayerMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50182BFD2458518B00BDC2B6 /* PlayerMode.swift */; };
 		503FF3FA2453123900D944A8 /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503FF3F92453123900D944A8 /* Board.swift */; };
+		506C88A9245872E300A8946D /* State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88A8245872E300A8946D /* State.swift */; };
+		506C88AD2458783700A8946D /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88AC2458783700A8946D /* Action.swift */; };
+		506C88AF245879E000A8946D /* InitialPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88AE245879E000A8946D /* InitialPhase.swift */; };
+		506C88B22459310F00A8946D /* Phase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B12459310F00A8946D /* Phase.swift */; };
+		506C88B424593DC000A8946D /* WaitForPlayerPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B324593DC000A8946D /* WaitForPlayerPhase.swift */; };
+		506C88B624594B0F00A8946D /* ThinkingPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B524594B0F00A8946D /* ThinkingPhase.swift */; };
+		506C88B824594BF800A8946D /* PlaceDiskPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B724594BF800A8946D /* PlaceDiskPhase.swift */; };
+		506C88BA24594C4100A8946D /* PlacingDiskPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88B924594C4100A8946D /* PlacingDiskPhase.swift */; };
+		506C88BC24594C7D00A8946D /* NextTurnPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88BB24594C7D00A8946D /* NextTurnPhase.swift */; };
+		506C88BE24594D3F00A8946D /* PassPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88BD24594D3F00A8946D /* PassPhase.swift */; };
+		506C88C024594D7200A8946D /* GameOverPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88BF24594D7200A8946D /* GameOverPhase.swift */; };
+		506C88C2245958C900A8946D /* UniqueIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88C1245958C900A8946D /* UniqueIdentifier.swift */; };
+		506C88C42459612A00A8946D /* ResetPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88C32459612A00A8946D /* ResetPhase.swift */; };
+		506C88C624596C5C00A8946D /* GameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506C88C524596C5C00A8946D /* GameTests.swift */; };
+		50C4F66D2459A56B00031283 /* ArrayExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4F66C2459A56B00031283 /* ArrayExtension.swift */; };
+		50C4F66F2459AA4700031283 /* EventuallyFulfill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4F66E2459AA4700031283 /* EventuallyFulfill.swift */; };
+		50CE311D245D4C5300D2EF2A /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CE311C245D4C5300D2EF2A /* Engine.swift */; };
+		50CE311F245D4CD400D2EF2A /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CE311E245D4CD400D2EF2A /* Logger.swift */; };
 		D636B39F23D35043007F370F /* DiskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D636B39E23D35043007F370F /* DiskView.swift */; };
 		D642BDB423A9FE4500396732 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D642BDB323A9FE4500396732 /* AppDelegate.swift */; };
 		D642BDB623A9FE4500396732 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D642BDB523A9FE4500396732 /* SceneDelegate.swift */; };
@@ -34,7 +54,27 @@
 
 /* Begin PBXFileReference section */
 		50182BF92455C68600BDC2B6 /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
+		50182BFB24584C4500BDC2B6 /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
+		50182BFD2458518B00BDC2B6 /* PlayerMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMode.swift; sourceTree = "<group>"; };
 		503FF3F92453123900D944A8 /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
+		506C88A8245872E300A8946D /* State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = State.swift; sourceTree = "<group>"; };
+		506C88AC2458783700A8946D /* Action.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
+		506C88AE245879E000A8946D /* InitialPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialPhase.swift; sourceTree = "<group>"; };
+		506C88B12459310F00A8946D /* Phase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase.swift; sourceTree = "<group>"; };
+		506C88B324593DC000A8946D /* WaitForPlayerPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitForPlayerPhase.swift; sourceTree = "<group>"; };
+		506C88B524594B0F00A8946D /* ThinkingPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingPhase.swift; sourceTree = "<group>"; };
+		506C88B724594BF800A8946D /* PlaceDiskPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDiskPhase.swift; sourceTree = "<group>"; };
+		506C88B924594C4100A8946D /* PlacingDiskPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacingDiskPhase.swift; sourceTree = "<group>"; };
+		506C88BB24594C7D00A8946D /* NextTurnPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextTurnPhase.swift; sourceTree = "<group>"; };
+		506C88BD24594D3F00A8946D /* PassPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassPhase.swift; sourceTree = "<group>"; };
+		506C88BF24594D7200A8946D /* GameOverPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverPhase.swift; sourceTree = "<group>"; };
+		506C88C1245958C900A8946D /* UniqueIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueIdentifier.swift; sourceTree = "<group>"; };
+		506C88C32459612A00A8946D /* ResetPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPhase.swift; sourceTree = "<group>"; };
+		506C88C524596C5C00A8946D /* GameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTests.swift; sourceTree = "<group>"; };
+		50C4F66C2459A56B00031283 /* ArrayExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtension.swift; sourceTree = "<group>"; };
+		50C4F66E2459AA4700031283 /* EventuallyFulfill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventuallyFulfill.swift; sourceTree = "<group>"; };
+		50CE311C245D4C5300D2EF2A /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
+		50CE311E245D4CD400D2EF2A /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		D636B39E23D35043007F370F /* DiskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskView.swift; sourceTree = "<group>"; };
 		D642BDB023A9FE4500396732 /* Reversi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reversi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D642BDB323A9FE4500396732 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -70,6 +110,44 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		506C88A72458725B00A8946D /* GameEngine */ = {
+			isa = PBXGroup;
+			children = (
+				50182BFB24584C4500BDC2B6 /* Game.swift */,
+				50CE311C245D4C5300D2EF2A /* Engine.swift */,
+				50CE311E245D4CD400D2EF2A /* Logger.swift */,
+				506C88A8245872E300A8946D /* State.swift */,
+				506C88AC2458783700A8946D /* Action.swift */,
+				506C88B12459310F00A8946D /* Phase.swift */,
+				506C88B0245879EB00A8946D /* Phases */,
+			);
+			name = GameEngine;
+			sourceTree = "<group>";
+		};
+		506C88B0245879EB00A8946D /* Phases */ = {
+			isa = PBXGroup;
+			children = (
+				506C88AE245879E000A8946D /* InitialPhase.swift */,
+				506C88B324593DC000A8946D /* WaitForPlayerPhase.swift */,
+				506C88B524594B0F00A8946D /* ThinkingPhase.swift */,
+				506C88B724594BF800A8946D /* PlaceDiskPhase.swift */,
+				506C88B924594C4100A8946D /* PlacingDiskPhase.swift */,
+				506C88BB24594C7D00A8946D /* NextTurnPhase.swift */,
+				506C88BD24594D3F00A8946D /* PassPhase.swift */,
+				506C88BF24594D7200A8946D /* GameOverPhase.swift */,
+				506C88C32459612A00A8946D /* ResetPhase.swift */,
+			);
+			name = Phases;
+			sourceTree = "<group>";
+		};
+		50C4F6712459AD6300031283 /* Utility */ = {
+			isa = PBXGroup;
+			children = (
+				50C4F66E2459AA4700031283 /* EventuallyFulfill.swift */,
+			);
+			name = Utility;
+			sourceTree = "<group>";
+		};
 		D636B3A123D43203007F370F /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -85,6 +163,9 @@
 			children = (
 				503FF3F92453123900D944A8 /* Board.swift */,
 				D642BDD723AA0B5700396732 /* Disk.swift */,
+				50182BFD2458518B00BDC2B6 /* PlayerMode.swift */,
+				506C88C1245958C900A8946D /* UniqueIdentifier.swift */,
+				50C4F66C2459A56B00031283 /* ArrayExtension.swift */,
 			);
 			name = DataTypes;
 			sourceTree = "<group>";
@@ -117,6 +198,7 @@
 				D642BDBC23A9FE4700396732 /* Assets.xcassets */,
 				D642BDBE23A9FE4700396732 /* LaunchScreen.storyboard */,
 				D642BDC123A9FE4700396732 /* Info.plist */,
+				506C88A72458725B00A8946D /* GameEngine */,
 				D636B3A123D43203007F370F /* Views */,
 				D636B3A423D432D3007F370F /* DataTypes */,
 			);
@@ -128,6 +210,8 @@
 			children = (
 				D642BDCA23A9FE4700396732 /* ReversiTests.swift */,
 				50182BF92455C68600BDC2B6 /* BoardTests.swift */,
+				506C88C524596C5C00A8946D /* GameTests.swift */,
+				50C4F6712459AD6300031283 /* Utility */,
 				D642BDCC23A9FE4700396732 /* Info.plist */,
 			);
 			path = ReversiTests;
@@ -235,13 +319,31 @@
 			buildActionMask = 2147483647;
 			files = (
 				D636B39F23D35043007F370F /* DiskView.swift in Sources */,
+				506C88AD2458783700A8946D /* Action.swift in Sources */,
+				50182BFC24584C4500BDC2B6 /* Game.swift in Sources */,
+				50C4F66D2459A56B00031283 /* ArrayExtension.swift in Sources */,
+				506C88BA24594C4100A8946D /* PlacingDiskPhase.swift in Sources */,
 				D642BDD623AA0B3900396732 /* CellView.swift in Sources */,
+				506C88A9245872E300A8946D /* State.swift in Sources */,
+				506C88BE24594D3F00A8946D /* PassPhase.swift in Sources */,
+				506C88AF245879E000A8946D /* InitialPhase.swift in Sources */,
+				50CE311F245D4CD400D2EF2A /* Logger.swift in Sources */,
 				D642BDD823AA0B5700396732 /* Disk.swift in Sources */,
 				D642BDB823A9FE4500396732 /* ViewController.swift in Sources */,
+				50182BFE2458518B00BDC2B6 /* PlayerMode.swift in Sources */,
+				506C88B424593DC000A8946D /* WaitForPlayerPhase.swift in Sources */,
+				506C88B22459310F00A8946D /* Phase.swift in Sources */,
+				506C88C42459612A00A8946D /* ResetPhase.swift in Sources */,
+				506C88BC24594C7D00A8946D /* NextTurnPhase.swift in Sources */,
+				506C88C024594D7200A8946D /* GameOverPhase.swift in Sources */,
+				506C88B624594B0F00A8946D /* ThinkingPhase.swift in Sources */,
 				D642BDDC23AA137C00396732 /* BoardView.swift in Sources */,
+				506C88C2245958C900A8946D /* UniqueIdentifier.swift in Sources */,
 				D642BDB423A9FE4500396732 /* AppDelegate.swift in Sources */,
 				503FF3FA2453123900D944A8 /* Board.swift in Sources */,
 				D642BDB623A9FE4500396732 /* SceneDelegate.swift in Sources */,
+				506C88B824594BF800A8946D /* PlaceDiskPhase.swift in Sources */,
+				50CE311D245D4C5300D2EF2A /* Engine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,6 +352,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				50182BFA2455C68600BDC2B6 /* BoardTests.swift in Sources */,
+				50C4F66F2459AA4700031283 /* EventuallyFulfill.swift in Sources */,
+				506C88C624596C5C00A8946D /* GameTests.swift in Sources */,
 				D642BDCB23A9FE4700396732 /* ReversiTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

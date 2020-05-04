@@ -955,4 +955,45 @@ class GameTests: XCTestCase {
         game.dispatch(.passDismissed(requestId: requestId))
         wait(for: [expectPassNotificationRequestDisappear, expectPhaseToBeNextTurn], timeout: 3.0)
     }
+    
+    func testGameOverPhase() throws {
+        let board = try Board(restoringFromText: """
+            --------
+            --------
+            ----x---
+            ---xxx--
+            --xxxxx-
+            ---xxx--
+            ----x---
+            --------
+            """)
+        var state = State(board: board, turn: .dark, playerModes: [.manual, .manual])
+        state.diskCount[.dark] = 13
+        state.diskCount[.light] = 0
+        state.phase = AnyPhase(GameOverPhase())
+
+        let game = Game(state: state, middlewares: [Logger.self])
+        let gameState = game.statePublisher.share()
+
+        // ターンがnilに変わる
+        let expectTurnChange = expectation(description: "Turn changed to nil")
+        let stateSubscriber = EventuallyFulfill<State, Never>(expectTurnChange, inputChecker: { state in
+            return state.turn == nil
+        })
+        gameState.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+
+        if let onEnter = GameOverPhase.onEnter(previousPhase: AnyPhase(NextTurnPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
+        wait(for: [expectTurnChange], timeout: 3.0)
+        
+        // そのまま待っていても、GameOverのまま
+        let expectGameOver = expectation(description: "Still game over")
+        expectGameOver.isInverted = true
+        stateSubscriber.reset(expectTurnChange, inputChecker: { state in
+            return state.phase.kind != .gameOver
+        })
+        wait(for: [expectGameOver], timeout: 1.0)
+    }
 }

@@ -5,7 +5,7 @@ extension PhaseKind {
 }
 
 public struct PlacingDiskPhase: Phase {
-    private let cellChanges: ArraySlice<Board.CellChange>
+    public let cellChanges: ArraySlice<Board.CellChange>
     
     public init(cellChanges: ArraySlice<Board.CellChange>) {
         self.cellChanges = cellChanges

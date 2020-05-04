@@ -44,9 +44,13 @@ class GameOverPhaseTests: XCTestCase {
         let gameState = game.statePublisher.share()
 
         // ターンがnilに変わる
-        let expectTurnChange = expectation(description: "Turn changed to nil")
+        // セーブ依頼も出る
+        let expectTurnChange = expectation(description: "Turn changed to nil and save requested")
         let stateSubscriber = EventuallyFulfill<State, Never>(expectTurnChange, inputChecker: { state in
-            return state.turn == nil
+            guard state.turn == nil else { return false }
+            guard state.saveRequest != nil else { return false }
+            
+            return true
         })
         gameState.subscribe(stateSubscriber)
         stateSubscriber.store(in: &cancellables)

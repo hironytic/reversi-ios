@@ -14,6 +14,9 @@ public struct NextTurnPhase: Phase {
     }
     
     public static func onExit(nextPhase: AnyPhase) -> Thunk? {
+        // 次がGameOverの場合はそちらでセーブ依頼を出してもらう
+        guard nextPhase.kind != .gameOver else { return nil }
+        
         return { (dispatcher, _) in
             dispatcher.dispatch(.requestSave())
         }

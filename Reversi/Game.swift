@@ -94,7 +94,9 @@ public enum GameReducer: Reducer {
                 if execute {
                     // どのフェーズにいてもリセットの確認の結果、
                     // 実行することになったらリセット
-                    state.phase = AnyPhase(ResetPhase())
+                    state.loop { (dispatcher, _) in
+                        dispatcher.dispatch(.changePhase(to: ResetPhase()))
+                    }
                 }
             }
             

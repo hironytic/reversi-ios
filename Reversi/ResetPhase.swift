@@ -32,7 +32,6 @@ public struct ResetPhase: Phase {
             for disk in Disk.sides {
                 state.diskCount[disk] = state.board.countDisks(of: disk)
             }
-            state.boardUpdateRequest = nil
             state.passNotificationRequest = nil
             state.resetConfirmationRequst = nil
             state.loop { (dispatcher, _) in

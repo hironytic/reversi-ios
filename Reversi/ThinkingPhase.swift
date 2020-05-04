@@ -61,8 +61,6 @@ public struct ThinkingPhase: Phase {
             if let turn = state.turn, turn == player && mode == .manual {
                 // 現在の対象のプレイヤーがマニュアルに変更されたら
                 // 入力待ちフェーズへ遷移
-                
-                // TODO: セーブ
                 state.loop { (dispatcher, _) in
                     dispatcher.dispatch(.requestSave())
                     dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))

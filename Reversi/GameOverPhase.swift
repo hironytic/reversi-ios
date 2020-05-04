@@ -20,6 +20,9 @@ public struct GameOverPhase: Phase {
         switch action {
         case .gameOver:
             state.turn = nil
+            state.loop { (dispatcher, _) in
+                dispatcher.dispatch(.requestSave())
+            }
             
         default:
             break

@@ -5,8 +5,8 @@ extension PhaseKind {
 }
 
 public struct PlaceDiskPhase: Phase {
-    private let x: Int
-    private let y: Int
+    public let x: Int
+    public let y: Int
     
     public init(x: Int, y: Int) {
         self.x = x
@@ -44,9 +44,9 @@ public struct PlaceDiskPhase: Phase {
                     dispatcher.dispatch(.changePhase(to: PlacingDiskPhase(cellChanges: cellChanges[...])))
                 }
             } else {
-                // 置けなかったら `ThinkingPhase` へ
+                // 置けなかったら `WaitForPlayer` へ
                 state.loop { (dispatcher, _) in
-                    dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
+                    dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                 }
             }
             

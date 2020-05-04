@@ -9,12 +9,20 @@ extension PhaseKind {
 
 class GameTests: XCTestCase {
     var cancellables = Set<AnyCancellable>()
+    var originalDuration: Double = ThinkingPhase.thinkingDuration
     
     override func setUpWithError() throws {
         cancellables = Set<AnyCancellable>()
+        
+        // 思考時間を短くしておく
+        originalDuration = ThinkingPhase.thinkingDuration
+        ThinkingPhase.thinkingDuration = 0.5
     }
 
     override func tearDownWithError() throws {
+        // 思考時間を元に戻す
+        ThinkingPhase.thinkingDuration = originalDuration
+        
         for cancellable in cancellables {
             cancellable.cancel()
         }
@@ -150,11 +158,6 @@ class GameTests: XCTestCase {
     }
     
     func testGameByComputer() {
-        // 思考時間を短くしておく
-        let originalDuration = ThinkingPhase.thinkingDuration
-        defer { ThinkingPhase.thinkingDuration = originalDuration }
-        ThinkingPhase.thinkingDuration = 0.5
-        
         let state = State(board: Board(), turn: .dark, playerModes: [.computer, .computer])
         let game = Game(state: state, middlewares: [Logger.self])
 
@@ -204,5 +207,5 @@ class GameTests: XCTestCase {
             return state.thinking && state.turn == .light
         })
         wait(for: [lightThinkingExpectation], timeout: 3.0)
-    }
+    }    
 }

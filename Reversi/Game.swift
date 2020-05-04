@@ -67,10 +67,13 @@ public enum GameReducer: Reducer {
             for disk in Disk.sides {
                 state.diskCount[disk] = state.board.countDisks(of: disk)
             }
-            state.boardUpdateRequest = nil
+            state.boardUpdateRequest = wholeCellUpdateRequest(board: state.board)
             state.passNotificationRequest = nil
             state.resetConfirmationRequst = nil
-        
+
+        case .playerModeChanged(player: let disk, mode: let mode):
+            state.playerModes[disk] = mode
+
         case .setThinking(let thinking):
             state.thinking = thinking
             
@@ -91,7 +94,9 @@ public enum GameReducer: Reducer {
                 if execute {
                     // どのフェーズにいてもリセットの確認の結果、
                     // 実行することになったらリセット
-                    state.phase = AnyPhase(ResetPhase())
+                    state.loop { (dispatcher, _) in
+                        dispatcher.dispatch(.changePhase(to: ResetPhase()))
+                    }
                 }
             }
             
@@ -105,5 +110,19 @@ public enum GameReducer: Reducer {
         }
         
         return state
+    }
+    
+    /// リバーシ盤の状態に合うように全セルの更新依頼を生成します。
+    /// - Parameter board: リバーシ盤
+    /// - Returns: 生成した更新依頼を返します。
+    private static func wholeCellUpdateRequest(board: Board) -> DetailedRequest<BoardUpdate> {
+        let cellChanges: [Board.CellChange] =
+            (0 ..< board.height).flatMap { y in
+                (0 ..< board.width).map { x in
+                    Board.CellChange(x: x, y: y, disk: board.diskAt(x: x, y: y))
+                }
+            }
+
+        return DetailedRequest(.withoutAnimation(cellChanges))
     }
 }

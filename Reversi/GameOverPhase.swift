@@ -6,4 +6,25 @@ extension PhaseKind {
 
 public struct GameOverPhase: Phase {
     public var kind: PhaseKind { .gameOver }
+    
+    public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
+        // ゲームオーバーにする
+        return { (dispatcher, _) in
+            dispatcher.dispatch(.gameOver())
+        }
+    }
+    
+    public static func reduce(state: State, action: Action) -> State {
+        var state = state
+        
+        switch action {
+        case .gameOver:
+            state.turn = nil
+            
+        default:
+            break
+        }
+        
+        return state
+    }
 }

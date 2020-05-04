@@ -29,6 +29,15 @@
 		50C4F66F2459AA4700031283 /* EventuallyFulfill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4F66E2459AA4700031283 /* EventuallyFulfill.swift */; };
 		50CE311D245D4C5300D2EF2A /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CE311C245D4C5300D2EF2A /* Engine.swift */; };
 		50CE311F245D4CD400D2EF2A /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CE311E245D4CD400D2EF2A /* Logger.swift */; };
+		50D74FC5246020B900B93178 /* InitialPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FC4246020B900B93178 /* InitialPhaseTests.swift */; };
+		50D74FC72460210500B93178 /* WaitForPlayerPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FC62460210500B93178 /* WaitForPlayerPhaseTests.swift */; };
+		50D74FC92460212D00B93178 /* ThinkingPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FC82460212D00B93178 /* ThinkingPhaseTests.swift */; };
+		50D74FCB2460214400B93178 /* PlaceDiskPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FCA2460214400B93178 /* PlaceDiskPhaseTests.swift */; };
+		50D74FCD2460215A00B93178 /* PlacingDiskPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FCC2460215A00B93178 /* PlacingDiskPhaseTests.swift */; };
+		50D74FCF2460217100B93178 /* NextTurnPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FCE2460217100B93178 /* NextTurnPhaseTests.swift */; };
+		50D74FD12460218800B93178 /* PassPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FD02460218800B93178 /* PassPhaseTests.swift */; };
+		50D74FD32460219E00B93178 /* GameOverPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FD22460219E00B93178 /* GameOverPhaseTests.swift */; };
+		50D74FD5246021B100B93178 /* ResetPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D74FD4246021B100B93178 /* ResetPhaseTests.swift */; };
 		D636B39F23D35043007F370F /* DiskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D636B39E23D35043007F370F /* DiskView.swift */; };
 		D642BDB423A9FE4500396732 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D642BDB323A9FE4500396732 /* AppDelegate.swift */; };
 		D642BDB623A9FE4500396732 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D642BDB523A9FE4500396732 /* SceneDelegate.swift */; };
@@ -75,6 +84,15 @@
 		50C4F66E2459AA4700031283 /* EventuallyFulfill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventuallyFulfill.swift; sourceTree = "<group>"; };
 		50CE311C245D4C5300D2EF2A /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		50CE311E245D4CD400D2EF2A /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		50D74FC4246020B900B93178 /* InitialPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FC62460210500B93178 /* WaitForPlayerPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitForPlayerPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FC82460212D00B93178 /* ThinkingPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FCA2460214400B93178 /* PlaceDiskPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDiskPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FCC2460215A00B93178 /* PlacingDiskPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacingDiskPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FCE2460217100B93178 /* NextTurnPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextTurnPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FD02460218800B93178 /* PassPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FD22460219E00B93178 /* GameOverPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverPhaseTests.swift; sourceTree = "<group>"; };
+		50D74FD4246021B100B93178 /* ResetPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPhaseTests.swift; sourceTree = "<group>"; };
 		D636B39E23D35043007F370F /* DiskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskView.swift; sourceTree = "<group>"; };
 		D642BDB023A9FE4500396732 /* Reversi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Reversi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D642BDB323A9FE4500396732 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -211,6 +229,15 @@
 				D642BDCA23A9FE4700396732 /* ReversiTests.swift */,
 				50182BF92455C68600BDC2B6 /* BoardTests.swift */,
 				506C88C524596C5C00A8946D /* GameTests.swift */,
+				50D74FC4246020B900B93178 /* InitialPhaseTests.swift */,
+				50D74FC62460210500B93178 /* WaitForPlayerPhaseTests.swift */,
+				50D74FC82460212D00B93178 /* ThinkingPhaseTests.swift */,
+				50D74FCA2460214400B93178 /* PlaceDiskPhaseTests.swift */,
+				50D74FCC2460215A00B93178 /* PlacingDiskPhaseTests.swift */,
+				50D74FCE2460217100B93178 /* NextTurnPhaseTests.swift */,
+				50D74FD02460218800B93178 /* PassPhaseTests.swift */,
+				50D74FD22460219E00B93178 /* GameOverPhaseTests.swift */,
+				50D74FD4246021B100B93178 /* ResetPhaseTests.swift */,
 				50C4F6712459AD6300031283 /* Utility */,
 				D642BDCC23A9FE4700396732 /* Info.plist */,
 			);
@@ -351,8 +378,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				50D74FCB2460214400B93178 /* PlaceDiskPhaseTests.swift in Sources */,
+				50D74FD12460218800B93178 /* PassPhaseTests.swift in Sources */,
 				50182BFA2455C68600BDC2B6 /* BoardTests.swift in Sources */,
 				50C4F66F2459AA4700031283 /* EventuallyFulfill.swift in Sources */,
+				50D74FCD2460215A00B93178 /* PlacingDiskPhaseTests.swift in Sources */,
+				50D74FD32460219E00B93178 /* GameOverPhaseTests.swift in Sources */,
+				50D74FD5246021B100B93178 /* ResetPhaseTests.swift in Sources */,
+				50D74FC5246020B900B93178 /* InitialPhaseTests.swift in Sources */,
+				50D74FCF2460217100B93178 /* NextTurnPhaseTests.swift in Sources */,
+				50D74FC92460212D00B93178 /* ThinkingPhaseTests.swift in Sources */,
+				50D74FC72460210500B93178 /* WaitForPlayerPhaseTests.swift in Sources */,
 				506C88C624596C5C00A8946D /* GameTests.swift in Sources */,
 				D642BDCB23A9FE4700396732 /* ReversiTests.swift in Sources */,
 			);

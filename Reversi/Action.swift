@@ -118,6 +118,11 @@ extension Actionish {
         return .action(.nextTurn)
     }
 
+    /// ゲームオーバーにするアクションを生成します。
+    static func gameOver() -> Actionish {
+        return .action(.gameOver)
+    }
+    
     /// リセットを実行するアクションを生成します。
     static func doReset() -> Actionish {
         return .action(.doReset)
@@ -168,6 +173,9 @@ public enum Action: CustomStringConvertible {
     /// 次のターンへ変更するアクションです。
     case nextTurn
     
+    /// ゲームオーバーにするアクションです。
+    case gameOver
+    
     /// リセットを実行するアクションです。
     case doReset
     
@@ -207,6 +215,8 @@ public enum Action: CustomStringConvertible {
             return "requestPassNotification(\(doRequest))"
         case .nextTurn:
             return "nextTurn"
+        case .gameOver:
+            return "gameOver"
         case .doReset:
             return "doReset"
         }

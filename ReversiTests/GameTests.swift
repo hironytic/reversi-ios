@@ -288,11 +288,9 @@ class GameTests: XCTestCase {
         gameState.subscribe(stateSubscriber)
         stateSubscriber.store(in: &cancellables)
         
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectPhaseToBeThinking], timeout: 3.0)
     }
     
@@ -322,11 +320,9 @@ class GameTests: XCTestCase {
         gameState.subscribe(stateSubscriber)
         stateSubscriber.store(in: &cancellables)
         
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectPhaseNotToTransit], timeout: 1.0)
         
         // ボードのセルをタップすると、フェーズがPlaceDiskに移る
@@ -360,11 +356,9 @@ class GameTests: XCTestCase {
         let gameState = game.statePublisher.share()
 
         // 白のターンだが、白はmanual
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
 
         // 白のプレイヤーモードをcomputerに変更すると
         // ThinkingPhaseに移る
@@ -404,11 +398,9 @@ class GameTests: XCTestCase {
         gameState.subscribe(stateSubscriber)
         stateSubscriber.store(in: &cancellables)
         
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = ThinkingPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = ThinkingPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectThinking], timeout: 3.0)
     }
     
@@ -449,11 +441,9 @@ class GameTests: XCTestCase {
         gameState.subscribe(stateSubscriber2)
         stateSubscriber2.store(in: &cancellables)
 
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = ThinkingPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = ThinkingPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectThinking, expectPhaseToBePlaceDisk], timeout: 3.0)
     }
     
@@ -483,11 +473,9 @@ class GameTests: XCTestCase {
         })
         gameState.subscribe(stateSubscriber1)
         stateSubscriber1.store(in: &cancellables)
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = ThinkingPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = ThinkingPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectThinking], timeout: 3.0)
 
         // 思考中の間に黒のプレイヤーモードをmanualに変えたら
@@ -538,11 +526,9 @@ class GameTests: XCTestCase {
         gameState.subscribe(stateSubscriber)
         stateSubscriber.store(in: &cancellables)
 
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = PlaceDiskPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = PlaceDiskPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectPhaseToBePlacingDisk], timeout: 3.0)
     }
     
@@ -572,11 +558,9 @@ class GameTests: XCTestCase {
         gameState.subscribe(stateSubscriber)
         stateSubscriber.store(in: &cancellables)
 
-        game.dispatch(.thunk({ (dispatcher, _) in
-            if let onEnter = PlaceDiskPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
-                dispatcher.dispatch(.thunk(onEnter))
-            }
-        }))
+        if let onEnter = PlaceDiskPhase.onEnter(previousPhase: AnyPhase(WaitForPlayerPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
         wait(for: [expectPhaseToBeWaitForPlayer], timeout: 3.0)
     }
 }

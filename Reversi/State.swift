@@ -30,7 +30,10 @@ public struct State {
     
     /// リセットの確認を表示する依頼が出ていれば値が設定されています。
     /// 依頼に答えて確認結果が得られたら `Actionish.resetConfirmed()` の結果をディスパッチしてください。
-    public var resetConfirmationRequst: Request?    
+    public var resetConfirmationRequst: Request?
+    
+    /// ゲームの状態をセーブする依頼が出ていれば値が設定されています。
+    public var saveRequest: DetailedRequest<String>?
     
     public init(board: Board, turn: Disk?, playerModes: [PlayerMode]) {
         precondition(playerModes.count == Disk.sides.count)

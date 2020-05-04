@@ -45,6 +45,7 @@ class NextTurnPhaseTests: XCTestCase {
 
         // ターンが黒に変わって、ディスク枚数が更新され、
         // WaitForPlayerフェーズに遷移する
+        // セーブ依頼も出る
         let expectTurnChange = expectation(description: "Changed to dark's turn")
         let stateSubscriber1 = EventuallyFulfill<State, Never>(expectTurnChange, inputChecker: { state in
             return state.turn == .dark
@@ -66,10 +67,30 @@ class NextTurnPhaseTests: XCTestCase {
         gameState.subscribe(stateSubscriber3)
         stateSubscriber3.store(in: &cancellables)
         
+        var requestId = UniqueIdentifier.invalid
+        let expectSaveRequest = expectation(description: "Save request")
+        let stateSubscriber4 = EventuallyFulfill<State, Never>(expectSaveRequest, inputChecker: { state in
+            if let request = state.saveRequest {
+                requestId = request.requestId
+                return true
+            }
+            return false
+        })
+        gameState.subscribe(stateSubscriber4)
+        stateSubscriber4.store(in: &cancellables)
+
         if let onEnter = NextTurnPhase.onEnter(previousPhase: AnyPhase(PlacingDiskPhase(cellChanges: [][...]))) {
             game.dispatch(.thunk(onEnter))
         }
-        wait(for: [expectTurnChange, expectDiskCount, expectPhaseToBeWaitForPlayer], timeout: 3.0)
+        wait(for: [expectTurnChange, expectDiskCount, expectPhaseToBeWaitForPlayer, expectSaveRequest], timeout: 3.0)
+        
+        // セーブ依頼は完了したら消える
+        let expectSaveRequestDisappear = expectation(description: "Save request disappears")
+        stateSubscriber4.reset(expectSaveRequestDisappear, inputChecker: { state in
+            return state.saveRequest == nil
+        })
+        game.dispatch(.saveCompleted(requestId: requestId))
+        wait(for: [expectSaveRequestDisappear], timeout: 3.0)        
     }
     
     func testNextTurnPhase2() throws {

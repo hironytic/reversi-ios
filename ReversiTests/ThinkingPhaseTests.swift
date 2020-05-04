@@ -132,6 +132,7 @@ class ThinkingPhaseTests: XCTestCase {
         // 思考中の間に黒のプレイヤーモードをmanualに変えたら
         // WaitForPlayerフェーズに戻る
         // そのとき思考中ではなくなる
+        // セーブ依頼も出る
         let expectPhaseToBeWaitForPlayer = expectation(description: "Phase transits to 'WaitForPlayer'")
         let stateSubscriber2 = EventuallyFulfill<State, Never>(expectPhaseToBeWaitForPlayer, inputChecker: { state in
             return state.phase.kind == .waitForPlayer
@@ -143,8 +144,15 @@ class ThinkingPhaseTests: XCTestCase {
         stateSubscriber1.reset(expectNotThinking, inputChecker: { state in
             return !state.thinking
         })
+        
+        let expectSaveRequest = expectation(description: "Save request")
+        let stateSubscriber3 = EventuallyFulfill<State, Never>(expectSaveRequest, inputChecker: { state in
+            return state.saveRequest != nil
+        })
+        gameState.subscribe(stateSubscriber3)
+        stateSubscriber3.store(in: &cancellables)
 
         game.dispatch(.playerModeChanged(player: .dark, mode: .manual))
-        wait(for: [expectPhaseToBeWaitForPlayer, expectNotThinking], timeout: 3.0)
+        wait(for: [expectPhaseToBeWaitForPlayer, expectNotThinking, expectSaveRequest], timeout: 3.0)
     }
 }

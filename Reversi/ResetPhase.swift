@@ -14,8 +14,9 @@ public struct ResetPhase: Phase {
     }
     
     public static func onExit(nextPhase: AnyPhase) -> Thunk? {
-        // TODO: セーブ
-        return nil
+        return { (dispatcher, _) in
+            dispatcher.dispatch(.requestSave())
+        }
     }
     
     public static func reduce(state: State, action: Action) -> State {

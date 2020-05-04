@@ -34,14 +34,6 @@ public class Game: Dispatcher {
         }
     }
     
-    /// 保存した状態で初期化します。
-    /// - Parameter data: 保存状態のテキスト
-    /// - Throws: 保存状態を復元できなければ `GameError.restore` を `throw` します。
-    public convenience init(loading data: String) throws {
-        // TODO:
-        self.init()
-    }
-    
     /// アクションらしきものをディスパッチします。
     /// - Parameter actionish: アクションらしきもの
     public func dispatch(_ actionish: Actionish) {
@@ -98,6 +90,14 @@ public enum GameReducer: Reducer {
                         dispatcher.dispatch(.changePhase(to: ResetPhase()))
                     }
                 }
+            }
+        
+        case .requestSave:
+            state.saveRequest = DetailedRequest(Game.createSaveData(state: state))            
+        
+        case .saveCompleted(requestId: let requestId):
+            if let request = state.saveRequest, request.requestId == requestId {
+                state.saveRequest = nil
             }
             
         default:

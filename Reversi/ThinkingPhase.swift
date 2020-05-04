@@ -62,6 +62,7 @@ public struct ThinkingPhase: Phase {
                 // 現在の対象のプレイヤーがマニュアルに変更されたら
                 // 入力待ちフェーズへ遷移
                 state.loop { (dispatcher, _) in
+                    dispatcher.dispatch(.requestSave())
                     dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                 }
             }

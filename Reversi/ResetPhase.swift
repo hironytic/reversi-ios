@@ -14,8 +14,9 @@ public struct ResetPhase: Phase {
     }
     
     public static func onExit(nextPhase: AnyPhase) -> Thunk? {
-        // TODO: セーブ
-        return nil
+        return { (dispatcher, _) in
+            dispatcher.dispatch(.requestSave())
+        }
     }
     
     public static func reduce(state: State, action: Action) -> State {
@@ -32,7 +33,6 @@ public struct ResetPhase: Phase {
             for disk in Disk.sides {
                 state.diskCount[disk] = state.board.countDisks(of: disk)
             }
-            state.boardUpdateRequest = nil
             state.passNotificationRequest = nil
             state.resetConfirmationRequst = nil
             state.loop { (dispatcher, _) in

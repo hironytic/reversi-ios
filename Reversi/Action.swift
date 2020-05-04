@@ -54,6 +54,11 @@ extension Actionish {
     public static func boardUpdated(requestId: UniqueIdentifier) -> Actionish {
         return .action(.boardUpdated(requestId: requestId))
     }
+    
+    /// セーブが完了したときに、このメソッドの結果をディスパッチします。
+    public static func saveCompleted(requestId: UniqueIdentifier) -> Actionish {
+        return .action(.saveCompleted(requestId: requestId))
+    }
 }
 
 // エンジン内部でディスパッチするもの
@@ -118,9 +123,19 @@ extension Actionish {
         return .action(.nextTurn)
     }
 
+    /// ゲームオーバーにするアクションを生成します。
+    static func gameOver() -> Actionish {
+        return .action(.gameOver)
+    }
+    
     /// リセットを実行するアクションを生成します。
     static func doReset() -> Actionish {
         return .action(.doReset)
+    }
+    
+    /// セーブを外部に要求するアクションを生成します。
+    static func requestSave() -> Actionish {
+        return .action(.requestSave)
     }
 }
 
@@ -168,8 +183,17 @@ public enum Action: CustomStringConvertible {
     /// 次のターンへ変更するアクションです。
     case nextTurn
     
+    /// ゲームオーバーにするアクションです。
+    case gameOver
+    
     /// リセットを実行するアクションです。
     case doReset
+    
+    /// セーブを外部に要求するアクションです。
+    case requestSave
+    
+    /// セーブが完了したときにディスパッチするアクションです。
+    case saveCompleted(requestId: UniqueIdentifier)
     
     public var description: String {
         switch self {
@@ -207,8 +231,14 @@ public enum Action: CustomStringConvertible {
             return "requestPassNotification(\(doRequest))"
         case .nextTurn:
             return "nextTurn"
+        case .gameOver:
+            return "gameOver"
         case .doReset:
             return "doReset"
+        case .requestSave:
+            return "requestSave"
+        case .saveCompleted(requestId: let requestId):
+            return "saveCompleted(requestId: \(requestId))"
         }
     }
 }

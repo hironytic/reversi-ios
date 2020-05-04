@@ -9,12 +9,20 @@ extension PhaseKind {
 
 class GameTests: XCTestCase {
     var cancellables = Set<AnyCancellable>()
+    var originalDuration: Double = ThinkingPhase.thinkingDuration
     
     override func setUpWithError() throws {
         cancellables = Set<AnyCancellable>()
+        
+        // 思考時間を短くしておく
+        originalDuration = ThinkingPhase.thinkingDuration
+        ThinkingPhase.thinkingDuration = 0.5
     }
 
     override func tearDownWithError() throws {
+        // 思考時間を元に戻す
+        ThinkingPhase.thinkingDuration = originalDuration
+        
         for cancellable in cancellables {
             cancellable.cancel()
         }
@@ -137,24 +145,37 @@ class GameTests: XCTestCase {
 
         // (3, 3)のアニメーションが終了したことを伝えると
         // 黒のカウントが4, 白のカウントが1になり、白のターンになる
+        // セーブ依頼も出る
+        var saveText = ""
         let turnChangeExpectation = expectation(description: "Turn change to light")
         stateSubscriber.reset(turnChangeExpectation, inputChecker: { state in
             guard state.diskCount[.dark] == 4 else { return false }
             guard state.diskCount[.light] == 1 else { return false }
             guard state.turn == .light else { return false }
-            
+            guard let saveRequest = state.saveRequest else { return false }
+
+            saveText = saveRequest.detail
             return true
         })
         game.dispatch(.boardUpdated(requestId: requestId))
         wait(for: [turnChangeExpectation], timeout: 3.0)
+        
+        XCTAssertEqual(saveText, """
+            o00
+            --------
+            --------
+            --------
+            --xxx---
+            ---xo---
+            --------
+            --------
+            --------
+
+            """
+        )
     }
     
     func testGameByComputer() {
-        // 思考時間を短くしておく
-        let originalDuration = ThinkingPhase.thinkingDuration
-        defer { ThinkingPhase.thinkingDuration = originalDuration }
-        ThinkingPhase.thinkingDuration = 0.5
-        
         let state = State(board: Board(), turn: .dark, playerModes: [.computer, .computer])
         let game = Game(state: state, middlewares: [Logger.self])
 
@@ -204,5 +225,94 @@ class GameTests: XCTestCase {
             return state.thinking && state.turn == .light
         })
         wait(for: [lightThinkingExpectation], timeout: 3.0)
+    }
+    
+    func testLoadGame() throws {
+        let saveText = """
+            o00
+            --------
+            --------
+            --------
+            --xxx---
+            ---xo---
+            --------
+            --------
+            --------
+
+            """
+        
+        var game: Game!
+        try XCTAssertNoThrow(game = Game(loading: saveText, middlewares: [Logger.self]))
+
+        let publisher = game
+            .statePublisher
+            .share()
+
+        let startingExpectation = expectation(description: "Start")
+        let stateSubscriber = EventuallyFulfill<State, Never>(startingExpectation, inputChecker: { state in
+            // それぞれのカウント
+            guard state.diskCount[.dark] == 4 else { return false }
+            guard state.diskCount[.light] == 1 else { return false }
+            
+            // 思考中ではない
+            guard !state.thinking else { return false}
+            
+            // どちらもManual
+            guard state.playerModes[.dark] == .manual else { return false }
+            guard state.playerModes[.light] == .manual else { return false }
+            
+            // 白のターン
+            guard state.turn == .light else { return false }
+            
+            return true
+        })
+        publisher.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+        
+        game.dispatch(.start())
+        wait(for: [startingExpectation], timeout: 3.0)
+    }
+    
+    func testLoadGameFromBrokenData1() {
+        // 先頭行がおかしいデータ
+        let saveText = """
+            oxx
+            --------
+            --------
+            --------
+            --xxx---
+            ---xo---
+            --------
+            --------
+            --------
+
+            """
+        
+        XCTAssertThrowsError(try Game(loading: saveText, middlewares: [Logger.self])) { error in
+            if case let GameError.restore(data: data) = error {
+                XCTAssertEqual(data, saveText)
+            } else {
+                XCTFail()
+            }
+        }
+    }
+    
+    func testLoadGameFromBrokenData2() {
+        // 途中までしかないデータ
+        let saveText = """
+            o00
+            --------
+            --------
+            --------
+            --xxx---
+            """
+        
+        XCTAssertThrowsError(try Game(loading: saveText, middlewares: [Logger.self])) { error in
+            if case let GameError.restore(data: data) = error {
+                XCTAssertEqual(data, saveText)
+            } else {
+                XCTFail()
+            }
+        }
     }
 }

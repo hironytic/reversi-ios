@@ -14,7 +14,7 @@ public struct PassPhase: Phase {
         }
     }
     
-    public static func onExit(state: State, nextPhase: AnyPhase) -> Thunk? {
+    public static func onExit(nextPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, _) in
             // パス表示リクエストを取り下げ
             dispatcher.dispatch(.requestPassNotification(false))

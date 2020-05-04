@@ -64,6 +64,7 @@ public struct ThinkingPhase: Phase {
                 
                 // TODO: セーブ
                 state.loop { (dispatcher, _) in
+                    dispatcher.dispatch(.requestSave())
                     dispatcher.dispatch(.changePhase(to: WaitForPlayerPhase()))
                 }
             }

@@ -177,6 +177,9 @@ class ResetPhaseTests: XCTestCase {
             guard state.diskCount[.dark] == 2 else { return false }
             guard state.diskCount[.light] == 2 else { return false }
 
+            // セーブ依頼が出る
+            guard state.saveRequest != nil else { return false }
+            
             return true
         })
         gameState.subscribe(stateSubscriber1)

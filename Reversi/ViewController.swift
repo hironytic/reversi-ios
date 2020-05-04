@@ -21,15 +21,23 @@ class ViewController: UIViewController {
         boardView.delegate = self
 
         viewModel = ViewModel(savedData: try? loadGame())
+        bindViewModel(messageDiskSize: messageDiskSizeConstraint.constant)
+    }
+    
+    private var viewHasAppeared: Bool = false
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        if viewHasAppeared { return }
+        viewHasAppeared = true
+        viewModel.viewDidFirstAppear()
+    }
+}
 
-        /// Storyboard 上で設定されたサイズを保管します。
-        /// 引き分けの際は `messageDiskView` の表示が必要ないため、
-        /// `messageDiskSizeConstraint.constant` を `0` に設定します。
-        /// その後、新しいゲームが開始されたときに `messageDiskSize` を
-        /// 元のサイズで表示する必要があり、
-        /// その際に `messageDiskSize` に保管された値を使います。
-        let messageDiskSize = messageDiskSizeConstraint.constant
+// MARK: Binding
 
+extension ViewController {
+    private func bindViewModel(messageDiskSize: CGFloat) {
         // メッセージ表示の中のディスクの表示
         let messageDiskSizeConstraint: NSLayoutConstraint = self.messageDiskSizeConstraint
         let messageDiskView: DiskView = self.messageDiskView
@@ -100,21 +108,15 @@ class ViewController: UIViewController {
         // セーブ
         viewModel.save
             .sink { [weak self] request in
-                guard let self = self else { return }
-                try? self.saveGame(data: request.detail)
-                self.viewModel.saveCompleted(requestid: request.requestId)
+                self?.handleSaveRequest(request)
             }
             .store(in: &cancellables)
     }
-    
-    private var viewHasAppeared: Bool = false
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        if viewHasAppeared { return }
-        viewHasAppeared = true
-        viewModel.viewDidFirstAppear()
-    }
+}
+
+// MARK: Handling Request
+
+extension ViewController {
     
     /// リバーシ盤の表示更新のリクエストをハンドリングします。
     /// - Parameter request: リクエスト
@@ -162,6 +164,13 @@ class ViewController: UIViewController {
             self?.viewModel.passDismissed(requestId: request.requestId)
         })
         present(alertController, animated: true)
+    }
+    
+    /// セーブリクエストをハンドリングします。
+    /// - Parameter request: リクエスト
+    private func handleSaveRequest(_ request: DetailedRequest<String>) {
+        try? saveGame(data: request.detail)
+        viewModel.saveCompleted(requestid: request.requestId)
     }
 }
 

@@ -20,7 +20,7 @@ class ViewController: UIViewController {
         
         boardView.delegate = self
 
-        viewModel = ViewModel()
+        viewModel = ViewModel(savedData: try? loadGame())
 
         /// Storyboard 上で設定されたサイズを保管します。
         /// 引き分けの際は `messageDiskView` の表示が必要ないため、
@@ -95,7 +95,16 @@ class ViewController: UIViewController {
             .sink { [weak self] request in
                 self?.handlePassAlertRequest(request)
             }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
+        
+        // セーブ
+        viewModel.save
+            .sink { [weak self] request in
+                guard let self = self else { return }
+                try? self.saveGame(data: request.detail)
+                self.viewModel.saveCompleted(requestid: request.requestId)
+            }
+            .store(in: &cancellables)
     }
     
     private var viewHasAppeared: Bool = false
@@ -185,150 +194,33 @@ extension ViewController: BoardViewDelegate {
 
 // MARK: Save and Load
 
-//extension ViewController {
-//    private var path: String {
-//        (NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first! as NSString).appendingPathComponent("Game")
-//    }
-//
-//    /// ゲームの状態をファイルに書き出し、保存します。
-//    func saveGame() throws {
-//        var output: String = ""
-//        output += turn.symbol
-//        for side in Disk.sides {
-//            output += playerControls[side.index].selectedSegmentIndex.description
-//        }
-//        output += "\n"
-//
-//        let boardDump = board.dump()
-//        for dumpLine in boardDump {
-//            for disk in dumpLine {
-//                output += disk.symbol
-//            }
-//            output += "\n"
-//        }
-//
-//        do {
-//            try output.write(toFile: path, atomically: true, encoding: .utf8)
-//        } catch let error {
-//            throw FileIOError.read(path: path, cause: error)
-//        }
-//    }
-//
-//    /// ゲームの状態をファイルから読み込み、復元します。
-//    func loadGame() throws {
-//        let input = try String(contentsOfFile: path, encoding: .utf8)
-//        var lines: ArraySlice<Substring> = input.split(separator: "\n")[...]
-//
-//        guard var line = lines.popFirst() else {
-//            throw FileIOError.read(path: path, cause: nil)
-//        }
-//
-//        do { // turn
-//            guard
-//                let diskSymbol = line.popFirst(),
-//                let disk = Optional<Disk>(symbol: diskSymbol.description)
-//            else {
-//                throw FileIOError.read(path: path, cause: nil)
-//            }
-//            turn = disk
-//        }
-//
-//        // players
-//        for side in Disk.sides {
-//            guard
-//                let playerSymbol = line.popFirst(),
-//                let playerNumber = Int(playerSymbol.description),
-//                let player = Player(rawValue: playerNumber)
-//            else {
-//                throw FileIOError.read(path: path, cause: nil)
-//            }
-//            playerControls[side.index].selectedSegmentIndex = player.rawValue
-//        }
-//
-//        do { // board
-//            guard lines.count == board.height else {
-//                throw FileIOError.read(path: path, cause: nil)
-//            }
-//
-//            var dump = [[Disk?]]()
-//            while let line = lines.popFirst() {
-//                var dumpLine = [Disk?]()
-//                for character in line {
-//                    let disk = Disk?(symbol: "\(character)").flatMap { $0 }
-//                    dumpLine.append(disk)
-//                }
-//                guard dumpLine.count == board.width else {
-//                    throw FileIOError.read(path: path, cause: nil)
-//                }
-//                dump.append(dumpLine)
-//            }
-//            guard dump.count == board.height else {
-//                throw FileIOError.read(path: path, cause: nil)
-//            }
-//            do {
-//                try board.restore(from: dump).forEach { change in
-//                    boardView.setDisk(change.disk, atX: change.x, y: change.y, animated: false)
-//                }
-//            } catch let error {
-//                throw FileIOError.read(path: path, cause: error)
-//            }
-//        }
-//
-//        updateMessageViews()
-//        updateCountLabels()
-//    }
-//
-//    enum FileIOError: Error {
-//        case write(path: String, cause: Error?)
-//        case read(path: String, cause: Error?)
-//    }
-//}
+extension ViewController {
+    private var path: String {
+        (NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first! as NSString).appendingPathComponent("Game")
+    }
 
-// MARK: Additional types
+    /// ゲームの状態をファイルに書き出し、保存します。
+    func saveGame(data: String) throws {
+        do {
+            try data.write(toFile: path, atomically: true, encoding: .utf8)
+        } catch let error {
+            throw FileIOError.write(path: path, cause: error)
+        }
+    }
 
-// MARK: File-private extensions
+    /// ゲームの状態をファイルから読み込み、復元します。
+    func loadGame() throws -> String {
+        let input: String
+        do {
+            input = try String(contentsOfFile: path, encoding: .utf8)
+        } catch let error {
+            throw FileIOError.read(path: path, cause: error)
+        }
+        return input
+    }
 
-//extension Disk {
-//    fileprivate init(index: Int) {
-//        for side in Disk.sides {
-//            if index == side.index {
-//                self = side
-//                return
-//            }
-//        }
-//        preconditionFailure("Illegal index: \(index)")
-//    }
-//
-//    fileprivate var index: Int {
-//        switch self {
-//        case .dark: return 0
-//        case .light: return 1
-//        }
-//    }
-//}
-//
-//extension Optional where Wrapped == Disk {
-//    fileprivate init?<S: StringProtocol>(symbol: S) {
-//        switch symbol {
-//        case "x":
-//            self = .some(.dark)
-//        case "o":
-//            self = .some(.light)
-//        case "-":
-//            self = .none
-//        default:
-//            return nil
-//        }
-//    }
-//
-//    fileprivate var symbol: String {
-//        switch self {
-//        case .some(.dark):
-//            return "x"
-//        case .some(.light):
-//            return "o"
-//        case .none:
-//            return "-"
-//        }
-//    }
-//}
+    enum FileIOError: Error {
+        case write(path: String, cause: Error?)
+        case read(path: String, cause: Error?)
+    }
+}

@@ -1,11 +1,13 @@
 import Foundation
 import Combine
 
+private let middlewares = [Logger.self]
+
 class ViewModel {
     private let game: Game
     
-    init() {
-        game = Game(middlewares: [Logger.self])
+    init(savedData: String? = nil) {
+        game = savedData.flatMap { try? Game(loading: $0, middlewares: middlewares) } ?? Game(middlewares: middlewares)
         
         let gameState = game.statePublisher
             .share()
@@ -79,6 +81,12 @@ class ViewModel {
             .compactMap { $0.passNotificationRequest }
             .removeDuplicates()
             .eraseToAnyPublisher()
+        
+        // セーブ依頼のハンドリング
+        save = gameState
+            .compactMap { $0.saveRequest }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
     }
 
     // MARK: Outputs
@@ -106,6 +114,9 @@ class ViewModel {
 
     /// 「パス」のアラート表示
     let showPassAlert: AnyPublisher<Request, Never>
+    
+    /// セーブ
+    let save: AnyPublisher<DetailedRequest<String>, Never>
     
     // MARK: Inputs
     
@@ -155,7 +166,13 @@ class ViewModel {
     /// - Parameter requestId: `showPassAlert` が発行したリクエストの `requestId`
     func passDismissed(requestId: UniqueIdentifier) {
         game.dispatch(.passDismissed(requestId: requestId))
-    }    
+    }
+    
+    /// セーブが完了したときに呼び出します。
+    /// - Parameter requestid: `save` が発行したリクエストの `requestId`
+    func saveCompleted(requestid: UniqueIdentifier) {
+        game.dispatch(.saveCompleted(requestId: requestid))
+    }
 }
 
 // MARK: - fileprivate extensions

@@ -341,4 +341,42 @@ class GameTests: XCTestCase {
         game.dispatch(.boardCellSelected(x: 1, y: 3))
         wait(for: [expectPhaseToBePlaceDisk], timeout: 3.0)
     }
+    
+    func testWaitForPlayerPhase3() throws {
+        let board = try Board(restoringFromText: """
+            o-------
+            -o-o----
+            --oo-o--
+            --xoxox-
+            ---xox--
+            ---oxxx-
+            ---o-x--
+            --o-----
+            """)
+        var state = State(board: board, turn: .light, playerModes: [.computer, .manual])
+        state.phase = AnyPhase(WaitForPlayerPhase())
+        
+        let game = Game(state: state, middlewares: [Logger.self])
+        let gameState = game.statePublisher.share()
+
+        // 白のターンだが、白はmanual
+        game.dispatch(.thunk({ (dispatcher, _) in
+            let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase()))
+            XCTAssertNotNil(onEnter)
+            onEnter.map { dispatcher.dispatch(.thunk($0)) }
+        }))
+
+        // 白のプレイヤーモードをcomputerに変更すると
+        // ThinkingPhaseに移る
+        let expectPhaseToBeThinking = expectation(description: "Phase transits to 'Thinking'")
+        let stateSubscriber = EventuallyFulfill<State, Never>(expectPhaseToBeThinking, inputChecker: { state in
+            return state.phase.kind == .thinking
+        })
+        gameState.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+        
+        game.dispatch(.playerModeChanged(player: .light, mode: .computer))
+        wait(for: [expectPhaseToBeThinking], timeout: 3.0)
+    }
+
 }

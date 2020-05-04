@@ -70,7 +70,10 @@ public enum GameReducer: Reducer {
             state.boardUpdateRequest = wholeCellUpdateRequest(board: state.board)
             state.passNotificationRequest = nil
             state.resetConfirmationRequst = nil
-        
+
+        case .playerModeChanged(player: let disk, mode: let mode):
+            state.playerModes[disk] = mode
+
         case .setThinking(let thinking):
             state.thinking = thinking
             

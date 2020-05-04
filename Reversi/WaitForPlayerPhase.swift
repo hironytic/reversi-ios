@@ -25,6 +25,15 @@ public struct WaitForPlayerPhase: Phase {
             state.loop { (dispatcher, _) in
                 dispatcher.dispatch(.changePhase(to: PlaceDiskPhase(x: x, y: y)))
             }
+        
+        case .playerModeChanged(player: let disk, mode: let mode):
+            if state.turn == disk && mode == .computer {
+                // このターンのプレイヤーモードがコンピューターに変更されたら
+                // コンピューターの思考フェーズへ遷移させる
+                state.loop { (dispatcher, _) in
+                    dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
+                }
+            }
             
         default:
             break

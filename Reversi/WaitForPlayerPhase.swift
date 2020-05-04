@@ -11,8 +11,12 @@ public struct WaitForPlayerPhase: Phase {
         return { (dispatcher, state) in
             // このターンがコンピューターに任せられているのなら
             // コンピューターの思考フェーズへ遷移させる
-            if let turn = state.turn, state.playerModes[turn] == .computer {
-                dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
+            if let turn = state.turn {
+                if state.playerModes[turn] == .computer {
+                    dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
+                }
+            } else {
+                dispatcher.dispatch(.changePhase(to: GameOverPhase()))
             }
         }
     }

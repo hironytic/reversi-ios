@@ -372,6 +372,39 @@ class GameTests: XCTestCase {
         game.dispatch(.playerModeChanged(player: .light, mode: .computer))
         wait(for: [expectPhaseToBeThinking], timeout: 3.0)
     }
+    
+    func testWaitForPlayerPhase4() throws {
+        let board = try Board(restoringFromText: """
+            --------
+            --------
+            ----x---
+            ---xxx--
+            --xxxxx-
+            ---xxx--
+            ----x---
+            --------
+            """)
+        var state = State(board: board, turn: nil, playerModes: [.computer, .manual])
+        state.diskCount[.dark] = 13
+        state.diskCount[.light] = 0
+        state.phase = AnyPhase(WaitForPlayerPhase())
+        
+        let game = Game(state: state, middlewares: [Logger.self])
+        let gameState = game.statePublisher.share()
+
+        // ターンがnilなのでGameOverへ遷移する
+        let expectPhaseToBeGameOver = expectation(description: "Phase transits to 'GameOver'")
+        let stateSubscriber = EventuallyFulfill<State, Never>(expectPhaseToBeGameOver, inputChecker: { state in
+            return state.phase.kind == .gameOver
+        })
+        gameState.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+        
+        if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
+        wait(for: [expectPhaseToBeGameOver], timeout: 3.0)
+    }
 
     func testThinkingPhase1() throws {
         let board = try Board(restoringFromText: """

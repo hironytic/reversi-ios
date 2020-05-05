@@ -91,20 +91,13 @@ extension ViewController {
             }
             .store(in: &cancellables)
         
-        // リセット確認のアラート表示
-        viewModel.showResetConfirmationAlert
+        // アラート表示
+        viewModel.showAlert
             .sink { [weak self] request in
-                self?.handleResetConfirmationAlertRequest(request)
+                self?.handleShowAlertRequest(request)
             }
             .store(in: &cancellables)
 
-        // 「パス」のアラート表示
-        viewModel.showPassAlert
-            .sink { [weak self] request in
-                self?.handlePassAlertRequest(request)
-            }
-            .store(in: &cancellables)
-        
         // セーブ
         viewModel.save
             .sink { [weak self] request in
@@ -135,34 +128,15 @@ extension ViewController {
         }
     }
     
-    /// リセット確認用アラート表示のリクエストをハンドリングします。
+    /// アラート表示のリクエストをハンドリングします。
     /// - Parameter request: リクエスト
-    private func handleResetConfirmationAlertRequest(_ request: Request) {
-        let alertController = UIAlertController(
-            title: "Confirmation",
-            message: "Do you really want to reset the game?",
-            preferredStyle: .alert
-        )
-        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
-            self?.viewModel.resetConfirmed(requestId: request.requestId, doReset: false)
-        })
-        alertController.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            self?.viewModel.resetConfirmed(requestId: request.requestId, doReset: true)
-        })
-        present(alertController, animated: true)
-    }
-        
-    /// 「パス」用アラート表示リクエストをハンドリングします。
-    /// - Parameter request: リクエスト
-    private func handlePassAlertRequest(_ request: Request) {
-        let alertController = UIAlertController(
-            title: "Pass",
-            message: "Cannot place a disk.",
-            preferredStyle: .alert
-        )
-        alertController.addAction(UIAlertAction(title: "Dismiss", style: .default) { [weak self] _ in
-            self?.viewModel.passDismissed(requestId: request.requestId)
-        })
+    private func handleShowAlertRequest(_ request: ViewModel.AlertRequest) {
+        let alertController = UIAlertController(title: request.title, message: request.message, preferredStyle: .alert)
+        for action in request.actions.enumerated() {
+            alertController.addAction(UIAlertAction(title: action.element.title, style: action.element.style) { [weak self] _ in
+                self?.viewModel.alertActionSelected(requestId: request.requestId, selectedIndex: action.offset)
+            })
+        }
         present(alertController, animated: true)
     }
     

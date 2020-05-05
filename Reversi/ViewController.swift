@@ -144,7 +144,7 @@ extension ViewController {
     /// - Parameter request: リクエスト
     private func handleSaveRequest(_ request: DetailedRequest<String>) {
         try? saveGame(data: request.detail)
-        viewModel.saveCompleted(requestid: request.requestId)
+        viewModel.saveCompleted(requestId: request.requestId)
     }
 }
 

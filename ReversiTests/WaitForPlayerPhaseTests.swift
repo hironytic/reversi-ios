@@ -166,4 +166,37 @@ class WaitForPlayerPhaseTests: XCTestCase {
         }
         wait(for: [expectPhaseToBeGameOver], timeout: 3.0)
     }
+    
+    func testWaitForPlayerPhase5() throws {
+        let board = try Board(restoringFromText: """
+            -xxooooo
+            -xoooxoo
+            xxooxooo
+            xxxooooo
+            xxxooooo
+            xxxooooo
+            ---ooooo
+            ---ooooo
+            """)
+        var state = State(board: board, turn: .dark, playerModes: [.manual, .manual])
+        state.diskCount[.dark] = board.countDisks(of: .dark)
+        state.diskCount[.light] = board.countDisks(of: .light)
+        state.phase = AnyPhase(WaitForPlayerPhase())
+        
+        let game = Game(state: state, middlewares: [Logger.self])
+        let gameState = game.statePublisher.share()
+
+        // 黒は置くところがないのでPassフェーズへ遷移する
+        let expectPhaseToBePass = expectation(description: "Phase transits to 'Pass'")
+        let stateSubscriber = EventuallyFulfill<State, Never>(expectPhaseToBePass, inputChecker: { state in
+            return state.phase.kind == .pass
+        })
+        gameState.subscribe(stateSubscriber)
+        stateSubscriber.store(in: &cancellables)
+        
+        if let onEnter = WaitForPlayerPhase.onEnter(previousPhase: AnyPhase(InitialPhase())) {
+            game.dispatch(.thunk(onEnter))
+        }
+        wait(for: [expectPhaseToBePass], timeout: 3.0)
+    }
 }

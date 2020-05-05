@@ -9,13 +9,20 @@ public struct WaitForPlayerPhase: Phase {
     
     public static func onEnter(previousPhase: AnyPhase) -> Thunk? {
         return { (dispatcher, state) in
-            // このターンがコンピューターに任せられているのなら
-            // コンピューターの思考フェーズへ遷移させる
             if let turn = state.turn {
+                // 置けないときは「パス」へ
+                if state.board.validMoves(for: turn).isEmpty {
+                    dispatcher.dispatch(.changePhase(to: PassPhase()))
+                    return
+                }
+                
+                // このターンがコンピューターに任せられているのなら
+                // コンピューターの思考フェーズへ遷移させる
                 if state.playerModes[turn] == .computer {
                     dispatcher.dispatch(.changePhase(to: ThinkingPhase()))
                 }
             } else {
+                // ターンがなくなっていればGameOver
                 dispatcher.dispatch(.changePhase(to: GameOverPhase()))
             }
         }

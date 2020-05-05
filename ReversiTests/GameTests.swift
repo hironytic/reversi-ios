@@ -315,4 +315,86 @@ class GameTests: XCTestCase {
             }
         }
     }
+    
+    func testLoadGameOnPassSituation() throws {
+        let saveText = """
+            o00
+            -xxooooo
+            -xoooxoo
+            xxooxooo
+            xxxooooo
+            xxxooooo
+            xxxooooo
+            ---xoooo
+            ----oooo
+
+            """
+        
+        let game1 = try Game(loading: saveText, middlewares: [Logger.self])
+        let publisher1 = game1.statePublisher.share()
+
+        // リバーシ盤の更新依頼に答える
+        publisher1
+            .compactMap { $0.boardUpdateRequest }
+            .removeDuplicates()
+            .sink { request in
+                DispatchQueue.main.async {
+                    game1.dispatch(.boardUpdated(requestId: request.requestId))
+                }
+            }
+            .store(in: &cancellables)
+        
+        // ゲーム開始
+        // ボードが更新されるまで待つ
+        let expectBoardUpdate = expectation(description: "Board is updated")
+        let stateSubscriber1 = EventuallyFulfill<State, Never>(expectBoardUpdate, inputChecker: { state in
+            return state.boardUpdateRequest != nil
+        })
+        publisher1.subscribe(stateSubscriber1)
+        stateSubscriber1.store(in: &cancellables)
+
+        game1.dispatch(.start())
+        wait(for: [expectBoardUpdate], timeout: 3.0)
+        
+        // 白のターンなので (3, 7) にディスクを置く
+        // セーブ依頼、パス依頼が出るまで待つ
+        var newSaveText = ""
+        let expectPassAndSaveRequests = expectation(description: "Pass and save requests")
+        stateSubscriber1.reset(expectPassAndSaveRequests, inputChecker: { state in
+            if let saveRequest = state.saveRequest, state.passNotificationRequest != nil {
+                newSaveText = saveRequest.detail
+                return true
+            }
+            return false
+        })
+
+        game1.dispatch(.boardCellSelected(x: 3, y: 7))
+        wait(for: [expectPassAndSaveRequests], timeout: 3.0)
+
+        // セーブデータから復帰
+        let game2 = try Game(loading: newSaveText, middlewares: [Logger.self])
+        let publisher2 = game2.statePublisher.share()
+        
+        // リバーシ盤の更新依頼に答える
+        publisher2
+            .compactMap { $0.boardUpdateRequest }
+            .removeDuplicates()
+            .sink { request in
+                DispatchQueue.main.async {
+                    game2.dispatch(.boardUpdated(requestId: request.requestId))
+                }
+            }
+            .store(in: &cancellables)
+
+        // パス依頼が出るまで待つ
+        let expectPass = expectation(description: "Pass request")
+        let stateSubscriber2 = EventuallyFulfill<State, Never>(expectPass, inputChecker: { state in
+            return state.passNotificationRequest != nil
+        })
+        publisher2.subscribe(stateSubscriber2)
+        stateSubscriber2.store(in: &cancellables)
+        
+        game2.dispatch(.start())
+        wait(for: [expectPass], timeout: 3.0)
+    }
 }

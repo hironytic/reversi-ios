@@ -506,7 +506,7 @@ class ViewModelTests: XCTestCase {
         wait(for: [expectReset], timeout: 3.0)
     }
 
-    func tsstChangePlayerControlSegment() {
+    func testChangePlayerControlSegment() {
         let game = MockGame()
         let viewModel = ViewModel(game: game)
 

@@ -4,7 +4,7 @@ import Combine
 private let middlewares = [Logger.self]
 
 class ViewModel {
-    private let game: Game
+    private let game: GameModel
     
     /// アラート表示の依頼内容
     struct AlertRequest {
@@ -18,9 +18,20 @@ class ViewModel {
         let style: UIAlertAction.Style
     }
     
-    init(savedData: String? = nil) {
-        game = savedData.flatMap { try? Game(loading: $0, middlewares: middlewares) } ?? Game(middlewares: middlewares)
+    convenience init(savedData: String? = nil) {
+        // テスト実行のときはダミーのゲームに接続
+        let isTestRunning = ProcessInfo.processInfo.environment["XCInjectBundleInto"] != nil
+        if isTestRunning {
+            self.init(game: NullGame())
+            return
+        }
         
+        let game = savedData.flatMap { try? Game(loading: $0, middlewares: middlewares) } ?? Game(middlewares: middlewares)
+        self.init(game: game)
+    }
+    
+    init(game: GameModel) {
+        self.game = game
         let gameState = game.statePublisher
             .share()
         
@@ -43,16 +54,19 @@ class ViewModel {
         
         messageDiskViewDisk = messageDiskAndText
             .map { $0.0 }
+            .removeDuplicates()
             .eraseToAnyPublisher()
 
         messageLabelText = messageDiskAndText
             .map { $0.1 }
+            .removeDuplicates()
             .eraseToAnyPublisher()
         
         // プレイヤーモードの選択状態
         playerControlSelectedIndices = Disk.sides.map { side in
             return gameState
                 .map { $0.playerModes[side].index }
+                .removeDuplicates()
                 .eraseToAnyPublisher()
         }
         
@@ -60,6 +74,7 @@ class ViewModel {
         countLabelTexts = Disk.sides.map { side in
             return gameState
                 .map { "\($0.diskCount[side])" }
+                .removeDuplicates()
                 .eraseToAnyPublisher()
         }
 
@@ -73,6 +88,7 @@ class ViewModel {
                         return state.thinking
                     }
                 }
+                .removeDuplicates()
                 .eraseToAnyPublisher()
         }
         
@@ -146,10 +162,6 @@ class ViewModel {
     
     /// ビューが初めて表示されたときに呼び出します。
     func viewDidFirstAppear() {
-        // テスト実行のときはゲームをスタートさせない
-        let isTestRunning = ProcessInfo.processInfo.environment["XCInjectBundleInto"] != nil
-        guard !isTestRunning else { return }
-        
         game.dispatch(.start())
     }
     
@@ -196,9 +208,21 @@ class ViewModel {
     
     /// セーブが完了したときに呼び出します。
     /// - Parameter requestid: `save` が発行したリクエストの `requestId`
-    func saveCompleted(requestid: UniqueIdentifier) {
-        game.dispatch(.saveCompleted(requestId: requestid))
+    func saveCompleted(requestId: UniqueIdentifier) {
+        game.dispatch(.saveCompleted(requestId: requestId))
     }
+}
+
+class NullGame: GameModel {
+    /// 現在の状態
+    var state: State = State(board: Board(), turn: .dark, playerModes: [.manual, .manual])
+    
+    /// 現在の状態が変更されたときのイベント発行者
+    var statePublisher: AnyPublisher<State, Never> = Empty().eraseToAnyPublisher()
+    
+    /// アクションらしきものをディスパッチします。
+    /// - Parameter actionish: アクションらしきもの
+    func dispatch(_ actionish: Actionish) {}
 }
 
 // MARK: - fileprivate extensions

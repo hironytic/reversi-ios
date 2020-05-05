@@ -122,6 +122,10 @@ class ViewModel {
     
     /// ビューが初めて表示されたときに呼び出します。
     func viewDidFirstAppear() {
+        // テスト実行のときはゲームをスタートさせない
+        let isTestRunning = ProcessInfo.processInfo.environment["XCInjectBundleInto"] != nil
+        guard !isTestRunning else { return }
+        
         game.dispatch(.start())
     }
     

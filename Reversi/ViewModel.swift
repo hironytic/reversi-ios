@@ -1,10 +1,22 @@
-import Foundation
+import UIKit
 import Combine
 
 private let middlewares = [Logger.self]
 
 class ViewModel {
     private let game: Game
+    
+    /// アラート表示の依頼内容
+    struct AlertRequest {
+        let requestId: UniqueIdentifier
+        let title: String?
+        let message: String?
+        let actions: [AlertRequstAction]
+    }
+    struct AlertRequstAction {
+        let title: String?
+        let style: UIAlertAction.Style
+    }
     
     init(savedData: String? = nil) {
         game = savedData.flatMap { try? Game(loading: $0, middlewares: middlewares) } ?? Game(middlewares: middlewares)
@@ -71,15 +83,30 @@ class ViewModel {
             .eraseToAnyPublisher()
 
         // リセットの確認依頼
-        showResetConfirmationAlert = gameState
+        let resetConfirmationAlert = gameState
             .compactMap { $0.resetConfirmationRequst }
             .removeDuplicates()
-            .eraseToAnyPublisher()
+            .map { (request: Request) in
+                return AlertRequest(requestId: request.requestId,
+                                    title: "Confirmation",
+                                    message: "Do you really want to reset the game?",
+                                    actions: [AlertRequstAction(title: "Cancel", style: .cancel),
+                                              AlertRequstAction(title: "OK", style: .default)])
+            }
 
         // 「パス」の表示依頼
-        showPassAlert = gameState
+        let passAlert = gameState
             .compactMap { $0.passNotificationRequest }
             .removeDuplicates()
+            .map { (request: Request) in
+                return AlertRequest(requestId: request.requestId,
+                                    title: "Pass",
+                                    message: "Cannot place a disk.",
+                                    actions: [AlertRequstAction(title: "Dismiss", style: .default)])
+            }
+
+        showAlert = resetConfirmationAlert
+            .merge(with: passAlert)
             .eraseToAnyPublisher()
         
         // セーブ依頼のハンドリング
@@ -109,11 +136,8 @@ class ViewModel {
     /// リバーシ盤表示の更新
     let boardViewUpdate: AnyPublisher<DetailedRequest<BoardUpdate>, Never>
     
-    /// リセット確認のアラート表示
-    let showResetConfirmationAlert: AnyPublisher<Request, Never>
-
-    /// 「パス」のアラート表示
-    let showPassAlert: AnyPublisher<Request, Never>
+    /// アラート表示
+    let showAlert: AnyPublisher<AlertRequest, Never>
     
     /// セーブ
     let save: AnyPublisher<DetailedRequest<String>, Never>
@@ -140,14 +164,6 @@ class ViewModel {
         game.dispatch(.reset())
     }
     
-    /// リセット確認のアラートが閉じられたら呼び出します。
-    /// - Parameters:
-    ///   - requestId: `showResetConfirmationAlert` が発行したリクエストの `requestId`
-    ///   - doReset: リセットを行うなら `true` 、キャンセルするなら `false`
-    func resetConfirmed(requestId: UniqueIdentifier, doReset: Bool) {
-        game.dispatch(.resetConfirmed(requestId: requestId, execute: doReset))
-    }
-    
     /// プレイヤーモードの切り替えが行われたときに呼び出します。
     /// - Parameters:
     ///   - player: どちらの `UISegmentedControl` か
@@ -166,10 +182,16 @@ class ViewModel {
         game.dispatch(.boardCellSelected(x: x, y: y))
     }
     
-    /// 「パス」のアラートが閉じられたときに呼び出します。
-    /// - Parameter requestId: `showPassAlert` が発行したリクエストの `requestId`
-    func passDismissed(requestId: UniqueIdentifier) {
-        game.dispatch(.passDismissed(requestId: requestId))
+    /// アラートが閉じられたときに呼び出します。
+    /// - Parameters:
+    ///   - requestId: `showAlert` が発行したリクエストの `requestId`
+    ///   - index: 選択されたアクションのインデックス
+    func alertActionSelected(requestId: UniqueIdentifier, selectedIndex: Int) {
+        if let resetConfirmation = game.state.resetConfirmationRequst, resetConfirmation.requestId == requestId {
+            game.dispatch(.resetConfirmed(requestId: requestId, execute: selectedIndex == 1))
+        } else if let passNotifiaction = game.state.passNotificationRequest, passNotifiaction.requestId == requestId {
+            game.dispatch(.passDismissed(requestId: requestId))
+        }
     }
     
     /// セーブが完了したときに呼び出します。

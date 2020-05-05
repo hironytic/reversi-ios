@@ -4,7 +4,7 @@ import Combine
 private let middlewares = [Logger.self]
 
 class ViewModel {
-    private let game: Game
+    private let game: GameModel
     
     /// アラート表示の依頼内容
     struct AlertRequest {
@@ -18,9 +18,13 @@ class ViewModel {
         let style: UIAlertAction.Style
     }
     
-    init(savedData: String? = nil) {
-        game = savedData.flatMap { try? Game(loading: $0, middlewares: middlewares) } ?? Game(middlewares: middlewares)
-        
+    convenience init(savedData: String? = nil) {
+        let game = savedData.flatMap { try? Game(loading: $0, middlewares: middlewares) } ?? Game(middlewares: middlewares)
+        self.init(game: game)
+    }
+    
+    init(game: GameModel) {
+        self.game = game
         let gameState = game.statePublisher
             .share()
         

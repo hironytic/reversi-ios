@@ -5,8 +5,21 @@ public enum GameError: Error {
     case restore(data: String)
 }
 
+/// Gameが準拠するプロトコル
+public protocol GameModel {
+    /// 現在の状態
+    var state: State { get }
+    
+    /// 現在の状態が変更されたときのイベント発行者
+    var statePublisher: AnyPublisher<State, Never> { get }
+    
+    /// アクションらしきものをディスパッチします。
+    /// - Parameter actionish: アクションらしきもの
+    func dispatch(_ actionish: Actionish)
+}
+
 /// ゲームの状態を保持し、アクションをディスパッチすることでゲームを進めます。
-public class Game: Dispatcher {
+public class Game: GameModel, Dispatcher {
     private lazy var store: Store = { () -> Store in fatalError() }()
 
     /// 現在の状態
@@ -18,7 +31,7 @@ public class Game: Dispatcher {
     public lazy var statePublisher: AnyPublisher<State, Never> = { () -> AnyPublisher<State, Never> in fatalError() }()
 
     /// 状態を変更するもの
-    public lazy var dispatcher: Dispatcher = { () -> Dispatcher in fatalError() }()
+    private lazy var dispatcher: Dispatcher = { () -> Dispatcher in fatalError() }()
     
     /// 指定された状態で初期化します。
     public init(state: State = State(board: Board(),

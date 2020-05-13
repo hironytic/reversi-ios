@@ -1,3 +1,177 @@
+
+# リファクタリング・チャレンジ （リバーシ編） iOS版 チャレンジ結果
+
+本リポジトリは [リファクタリング・チャレンジ（リバーシ編） iOS版](https://github.com/refactoring-challenge/reversi-ios) に、ぼく（ひろん）がチャレンジした結果です。
+
+## アーキテクチャーパターン
+
+![MVVM + Redux](img/mvvm.jpg)
+
+採用したアーキテクチャーパターンは全体としてはMVVM、そしてそのModelの部分にReduxを用いています。
+
+データフローは単方向になっています。Viewで発生したイベントはそのままView Modelに伝えられ、View ModelがそれをアクションとしてModelにディスパッチします。その結果、Model内のリデューサーがModelの状態を変更します。View ModelはModelの状態変更を通知として受け取り、それをそれぞれのUIの変更点に振り分けてViewに伝え、Viewが実際にUIを更新します。
+
+
+## Model
+
+Modelは `Game` クラスとして表され、ViewModelとのインターフェースになっています。
+ここに本リバーシアプリのビジネスロジックのほとんどが実装されています。
+
+Model層は **Reduxアーキテクチャー** で作られています。また、保持する状態の中に、 **ボード** 、 **フェーズ**、 **リクエスト** という、本アプリに固有のロジックが存在しています。
+
+以下で、それぞれについて説明します。
+
+### Reduxアーキテクチャー
+
+#### 基本
+
+- 単一の状態（ `State` ）を保持します。
+- アクション（ `Action` ）がディスパッチ（ `Dispatcher.dispatch` ）されると、現在の状態とアクションがリデューサー（ `Reducer.reduce` ）に渡されます。リデューサーは新しい状態を戻り値として返し、これによってのみ、保持している状態が更新されます。外部からは `Game.statePublisher` を購読することで状態の変更を通知してもらうことができます。
+- リデューサーは同じ引数が与えられたら常に同じ値を返します。また、副作用のある処理（外部にある状態の変更、非同期処理の実行開始など）をこの中に実装してはいけません。
+
+#### サンク
+
+非同期処理の結果を受けて処理するような、一連のアクションのディスパッチを可能にするために、サンク（ `Thunk` ）をディスパッチすることができるようになっています。
+
+サンクはディスパッチャーと現在の状態を引数にとる普通の関数で、この中では副作用の発生する処理を実装しても構いません。
+
+実装イメージ：
+
+```swift
+let game = Game()
+game.dispatch(.thunk({ (dispatcher, state) in
+    // このときのstateの状態を確認して処理できる
+    guard state.isFooNeeded else { return }
+
+    // 開始状態に変更するアクションをディスパッチ
+    dispatcher.dispatch(.action(.startFoo))
+    // 非同期処理を開始（結果がクロージャーで返されるとする）
+    fooAsync(state.requestedFoo) { result in
+        // 非同期処理の結果を反映するアクションをディスパッチ
+        dispatcher.dispatch(.action(.endFoo(result)))
+    }
+}))
+```
+
+※実際には `State.isFooNeeded` や `Action.startFoo` などは存在しません。
+
+#### ループ
+
+リデューサーがアクションを適用した結果、非同期実行を開始したい場合のために、 `State.loop` にサンクを渡して呼び出すと、状態が更新されたあとに、そのサンクがディスパッチされます。
+
+実装イメージ：
+
+```swift
+static func reduce(state: State, action: Action) -> State {
+    var state = state
+
+    switch action {
+    case .bar(let id):
+        state.barId = barId
+        // あとで実行して欲しいサンクを積む
+        state.loop { (dispatcher, state) in
+            // ここはサンクなので、非同期実行を開始してもよい
+            barAsync(state.barId) { result in
+                // 非同期処理の結果を反映するアクションをディスパッチ
+                dispatcher.dispatch(.action(.barResult(result)))
+            }
+        }
+    }
+
+    return state
+}
+```
+
+※実際には `State.barId` や `Action.barResult` などは存在しません。
+
+### ボード
+
+状態の中にリバーシ盤の状態をまとめたボード（ `State.board` ）があります。
+これは `Board` 構造体として実装されています。
+
+ボードは単に状態を保持しているだけでなく、リバーシ盤のルールから導かれる情報の取得や、ルールに則った盤の操作（状態の変更）を行うメソッドを持っています。
+
+例えば、 `diskAt(x:y:)` は単純に指定されたセルのディスクの状態を返しますが、それ以外にも指定された色のディスクを数える `countDisks(of:)` や、ディスクを置けるかどうかを判定する `canPlaceDisk(_:atX:y:)` といったメソッドを持っています。
+
+また、セルにディスクを置く `placeDisk(_:atX:y:)` は単に指定された場所にディスクを置くだけでなく、挟まれたディスクの色を変更する処理も行います。逆に、挟むディスクがない場所に自由にディスクをセットするようなルールに合わない操作を行えるメソッド（ `setDisk(_:atX:y:recordingOnto:)` など）は意図的に `private` にして隠してあります。
+
+状態を変更するメソッドは戻り値として、 `[Board.CellChanges]` を返します。これを参照することで、その状態に変更した際に、それぞれのセルをどういう順番でどう変更したかというのをトレースできるようになっています。
+
+### フェーズ
+
+状態の中にフェーズ（ `State.phase` ）があり、これがゲームの進行状況を表しています。
+フェーズは `Phase` プロトコルに準拠した値で、フェーズ固有の変数を状態として保持することもあります。また、 `Phase` に準拠した型はリデューサーとしての役割も持っており、
+メインのリデューサーの中から、そのときのフェーズ（ `State.phase` ）の型のリデューサーが呼び出されます。ここでフェーズ固有のアクションをハンドリングできます。
+
+フェーズは、 `onEnter` 、 `onExit` という、サンクを返すことのできる `static` 関数を提供します。それぞれ、別のフェーズからこのフェーズに変わった直後、このフェーズから別のフェーズへ変わる直前に呼び出され、フェーズ遷移のタイミングで処理を行えるようになっています。
+
+<img src="img/phases2.jpg" title="phases" width="600">
+
+### リクエスト
+
+アニメーションや、アラートの表示といった、UI側の操作を伴うものは、 `State` の中に `xxxxRequest` という名前の `Optional` のプロパティを持っています。これが値を持っている時は、「外部に依頼を出している状態」という意味になります。
+
+例：
+
+```swift
+/// リバーシ盤の表示を更新する依頼が出ていれば値が設定されています。
+/// 依頼に答えたら `Actionish.boardUpdated()` の結果をディスパッチしてください。
+public var boardUpdateRequest: DetailedRequest<BoardUpdate>?
+
+/// 「パス」を通知する依頼が出ていれば値が設定されています。
+/// 依頼に答えて通知が閉じられたら `Actionish.passDismissed()` の結果をディスパッチしてください。
+public var passNotificationRequest: Request?
+```
+
+UI側では、この依頼に応じてUIを制御し、アニメーション終了時やアラートが閉じられた時に、それに相当するアクションをディスパッチします。
+
+
+## View Model
+
+View Modelは `ViewModel` クラスとして実装されています。
+
+View Model は ViewのUIパーツに対応した一連の `AnyPublisher` をプロパティとして持っています。これはView側への出力となっており、Viewはこれを購読してUIに反映することになります。例えば、 `messageDiskViewDisk` や `countLabelTexts` などがそれに当たります。
+これらは基本的に、Modelの状態変化のストリームを加工して作ります。
+
+一方、UIパーツのタップなどにより発生したイベントの受け取り（View側からの入力）は戻り値を持たないメソッドとして実装されています。例えば、 `viewDidFirstAppear()` や `changePlayerControlSegment(side:selectedIndex:)` がそれに当たります。こちらはメソッドが呼ばれると、Modelにアクションをディスパッチします。
+
+
+## View
+
+Viewは `ViewController` クラスです。
+
+`bindViewModel` で、ViewModelの出力をそれぞれのUIコントロールに結びつける部分です。ここでは、できるだけ `AnyPublisher.assign(to:on:)` を使って単純に結び付けています。
+
+ViewModelの入力については、それぞれのUIパーツからのイベントハンドラの中でメソッドを呼び出す実装になっています。
+
+また、ViewModelからの依頼に応じるかたちで、以下の実装を持っています。
+
+- ボード盤の更新（アニメーション待ち）
+- アラートの表示
+- ゲームデータのセーブ・ロードのうちのファイルアクセス部分
+
+これらについては、さらにもう少し改善できそうには思います。特にセーブ・ロードのファイルアクセスは必ずしもViewで実装する必要はないと思っています。
+
+
+## ユニットテスト
+
+以下についてのユニットテストを `ReversiTests` ターゲットに追加しています。
+
+- ボード （ `BoardTests.swift` ）
+- Model （ `GameTests.swift` および `*PhaseTests.swift` ）
+- View Model （ `ViewModelTests.swift` ）
+
+
+## CI
+
+GitHub Actionsを使って、Pull Requestに対してビルドとユニットテストの実行を行うワークフローを構築してあります。
+
+
+----
+
+以下に、オリジナルの README.md の内容を残しておきます。
+
+
 # リファクタリング・チャレンジ （リバーシ編） iOS版
 
 本チャレンジは、 _Fat View Controller_ として実装された[リバーシ](https://en.wikipedia.org/wiki/Reversi)アプリをリファクタリングし、どれだけクリーンな設計とコードを実現できるかというコンペティションです（ジャッジが優劣を判定するわけではなく、設計の技を競い合うのが目的です）。
